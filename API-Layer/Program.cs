@@ -2,14 +2,14 @@ using Domain_Layer.Models;
 using Infrastructure_Layer;
 using Infrastructure_Layer.Database;
 using Microsoft.AspNetCore.Identity;
-//using Application_Layer;
+using Application_Layer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 // Lägg till tjänster från Application_Layer
-//builder.Services.AddApplicationLayer();
+builder.Services.AddApplicationLayer();
 
 // Lägg till tjänster från Infrastructure_Layer
 builder.Services.AddInfrastructureLayer(builder.Configuration);

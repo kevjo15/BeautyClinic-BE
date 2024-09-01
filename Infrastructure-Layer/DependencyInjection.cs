@@ -1,5 +1,5 @@
 ﻿using Infrastructure_Layer.Database;
-//using Infrastructure_Layer.Repositories.User;
+using Infrastructure_Layer.Repositories.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +21,7 @@ namespace Infrastructure_Layer
             services.AddDbContext<ElsaBeautyDbContext>(options =>
             options.UseSqlServer(connectionString));
 
-            //services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }
