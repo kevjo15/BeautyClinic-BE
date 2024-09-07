@@ -24,10 +24,7 @@ namespace Application_Layer.Commands.UserCommands
             {
                 throw new ArgumentNullException(nameof(request.NewUser), "Invalid user data. FirstName, LastName, Email, and Password are required.");
             }
-            //if (request.NewUser.Password != request.NewUser.ConfirmPassword)
-            //{
-            //    throw new Exception("Passwords do not match.");
-            //}
+
             try
             {
                 var user = new UserModel
