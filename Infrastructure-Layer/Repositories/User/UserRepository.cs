@@ -11,10 +11,23 @@ namespace Infrastructure_Layer.Repositories.User
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<UserModel> _userManager;
+        private readonly SignInManager<UserModel> _signInManager;
 
-        public UserRepository(UserManager<UserModel> userManager)
+        public UserRepository(UserManager<UserModel> userManager, SignInManager<UserModel> signInManager)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
+        }
+
+        public async Task<bool> CheckPasswordAsync(UserModel user, string password)
+        {
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
+            return result.Succeeded;
+        }
+
+        public async Task<UserModel> FindByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
         }
 
         public async Task<UserModel> RegisterUserAsync(UserModel newUser, string password)

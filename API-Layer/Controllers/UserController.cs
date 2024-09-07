@@ -1,4 +1,5 @@
 ﻿using Application_Layer.Commands.UserCommands;
+using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.DTO_s;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,6 +22,20 @@ namespace API_Layer.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUserDTO)
         {
             return Ok( await _mediator.Send(new RegisterUserCommand(registerUserDTO)));
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDTO)
+        {
+            var command = new LoginCommand(loginUserDTO);
+            var result = await _mediator.Send(command);
+
+            return Ok(result);
+            
+            //if (result.Successful)
+            //{
+            //    return Ok(new { token = result.Token});
+            //}
         }
     }
 }
