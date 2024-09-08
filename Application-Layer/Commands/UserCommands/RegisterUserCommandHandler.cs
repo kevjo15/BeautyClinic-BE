@@ -30,6 +30,12 @@ namespace Application_Layer.Commands.UserCommands
 
                 var result = await _userRepository.RegisterUserAsync(user, request.NewUser.Password);
 
+                if (!result.Succeeded)
+                {
+                    // Returnera felmeddelanden från IdentityResult om registreringen misslyckades
+                    return new RegisterResult(false, null, result.Errors.Select(e => e.Description).ToList());
+                }
+
                 return new RegisterResult(true, user);
             }
             catch (Exception ex)

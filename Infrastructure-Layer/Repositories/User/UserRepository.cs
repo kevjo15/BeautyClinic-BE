@@ -30,10 +30,10 @@ namespace Infrastructure_Layer.Repositories.User
             return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<UserModel> RegisterUserAsync(UserModel newUser, string password)
+        public async Task<IdentityResult> RegisterUserAsync(UserModel newUser, string password)
         {
             var result = await _userManager.CreateAsync(newUser, password);
-            return newUser;
+            return result;
         }
     }
 }

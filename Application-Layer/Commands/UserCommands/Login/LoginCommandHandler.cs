@@ -26,22 +26,29 @@ namespace Application_Layer.Commands.UserCommands.Login
 
         public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            var user = _mapper.Map<UserModel>(request.LoginUserDTO);
-
-            var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
-            if (existingUser == null)
+            try
             {
-                return CreateLoginResult(false, "Användaren existerar inte.");
-            }
+                var user = _mapper.Map<UserModel>(request.LoginUserDTO);
 
-            var passwordValid = await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
-            if(!passwordValid)
+                var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
+                if (existingUser == null)
+                {
+                    return CreateLoginResult(false, "Användaren existerar inte.");
+                }
+
+                var passwordValid = await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
+                if (!passwordValid)
+                {
+                    return CreateLoginResult(false, "Felaktigt lösenord.");
+                }
+
+                var token = _jwtTokenGenerator.GenerateToken(existingUser);
+                return CreateLoginResult(true, null, token);
+            }
+            catch (Exception ex)
             {
-                return CreateLoginResult(false, "Felaktigt lösenord.");
+                return CreateLoginResult(false, $"An unexpected error occurred: {ex.Message}");
             }
-
-            var token = _jwtTokenGenerator.GenerateToken(existingUser);
-            return CreateLoginResult(true, null, token);
 
         }
         private LoginResult CreateLoginResult(bool successful, string? error, string? token = null)
