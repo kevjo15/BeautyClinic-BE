@@ -21,7 +21,14 @@ namespace API_Layer.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUserDTO)
         {
-            return Ok( await _mediator.Send(new RegisterUserCommand(registerUserDTO)));
+           var result = await _mediator.Send(new RegisterUserCommand(registerUserDTO));
+
+            if (!result.Success)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(result.CreatedUser);
         }
 
         [HttpPost("login")]
@@ -30,12 +37,12 @@ namespace API_Layer.Controllers
             var command = new LoginCommand(loginUserDTO);
             var result = await _mediator.Send(command);
 
-            return Ok(result);
-            
-            //if (result.Successful)
-            //{
-            //    return Ok(new { token = result.Token});
-            //}
+            if (!result.Successful)
+            {
+                return BadRequest(result.Error);
+            }
+
+            return Ok(new { token = result.Token });
         }
     }
 }

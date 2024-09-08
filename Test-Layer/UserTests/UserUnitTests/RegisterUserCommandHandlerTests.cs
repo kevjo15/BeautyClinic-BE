@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Test_Layer.UserTests
+namespace Test_Layer.UserTests.UserUnitTests
 {
     [TestFixture]
     public class RegisterUserCommandHandlerTests
