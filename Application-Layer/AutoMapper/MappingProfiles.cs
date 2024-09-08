@@ -14,7 +14,7 @@ namespace Application_Layer.AutoMapper
     {
         public MappingProfile()
         {
-            CreateMap<RegisterUserDTO, UserModel>(); 
+            CreateMap<RegisterUserDTO, UserModel>();
             CreateMap<LoginUserDTO, UserModel>();
         }
     }
