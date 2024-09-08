@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands
 {
-    public class RegisterUserCommand : IRequest<bool>
+    public class RegisterUserCommand : IRequest<RegisterResult>
     {
         public RegisterUserDTO NewUser { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using Domain_Layer.Models;
+﻿using AutoMapper;
+using Domain_Layer.Models;
 using Infrastructure_Layer.Repositories.User;
 using MediatR;
 using System;
@@ -9,39 +10,31 @@ using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands
 {
-    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, bool>
+    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, RegisterResult>
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public RegisterUserCommandHandler(IUserRepository userRepository)
+        public RegisterUserCommandHandler(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
-        public async Task<bool> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<RegisterResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            if(request.NewUser == null)
-            {
-                throw new ArgumentNullException(nameof(request.NewUser), "Invalid user data. FirstName, LastName, Email, and Password are required.");
-            }
 
             try
             {
-                var user = new UserModel
-                {
-                    UserName = request.NewUser.UserName,
-                    Email = request.NewUser.Email,
-                    FirstName = request.NewUser.FirstName,
-                    LastName = request.NewUser.LastName
-                };
+                var user = _mapper.Map<UserModel>(request.NewUser);
 
                 var result = await _userRepository.RegisterUserAsync(user, request.NewUser.Password);
 
-                return result != null;
+                return new RegisterResult(true, user);
             }
             catch (Exception ex)
             {
-                return false;
+                return new RegisterResult(false, null, new List<string> { "An unexpected error occurred: " + ex.Message });
             }
         }
     }

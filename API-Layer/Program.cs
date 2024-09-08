@@ -28,7 +28,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>
+.AddJwtBearer(options => 
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {

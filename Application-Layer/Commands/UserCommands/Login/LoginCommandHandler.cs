@@ -1,4 +1,6 @@
 ﻿using Application_Layer.Jwt;
+using AutoMapper;
+using Domain_Layer.Models;
 using Infrastructure_Layer.Repositories.User;
 using MediatR;
 using System;
@@ -13,28 +15,32 @@ namespace Application_Layer.Commands.UserCommands.Login
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
+        private readonly IMapper _mapper;
 
-        public LoginCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator)
+        public LoginCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator, IMapper mapper)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _mapper = mapper;
         }
 
         public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
-            if (user == null)
+            var user = _mapper.Map<UserModel>(request.LoginUserDTO);
+
+            var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
+            if (existingUser == null)
             {
                 return CreateLoginResult(false, "Användaren existerar inte.");
             }
 
-            var passwordValid = await _userRepository.CheckPasswordAsync(user, request.LoginUserDTO.Password);
+            var passwordValid = await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
             if(!passwordValid)
             {
                 return CreateLoginResult(false, "Felaktigt lösenord.");
             }
 
-            var token = _jwtTokenGenerator.GenerateToken(user);
+            var token = _jwtTokenGenerator.GenerateToken(existingUser);
             return CreateLoginResult(true, null, token);
 
         }
