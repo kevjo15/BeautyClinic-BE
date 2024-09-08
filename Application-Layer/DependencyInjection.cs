@@ -26,6 +26,9 @@ namespace Application_Layer
 
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
 
             return services;
         }
