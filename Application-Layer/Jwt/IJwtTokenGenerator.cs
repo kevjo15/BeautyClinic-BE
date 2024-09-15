@@ -10,6 +10,6 @@ namespace Application_Layer.Jwt
 {
     public interface IJwtTokenGenerator
     {
-        string GenerateToken(UserModel user);
+        Task<string> GenerateToken(UserModel user);
     }
 }

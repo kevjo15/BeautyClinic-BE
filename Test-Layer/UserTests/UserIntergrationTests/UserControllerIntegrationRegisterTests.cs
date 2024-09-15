@@ -27,12 +27,6 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             _userController = new UserController(_mediator);
         }
 
-        [TearDown]
-        public void TearDown()
-        {
-            _userController?.Dispose();
-        }
-
         [Test]
         public async Task Register_ReturnsOk_WhenUserIsRegisteredSuccessfully()
         {

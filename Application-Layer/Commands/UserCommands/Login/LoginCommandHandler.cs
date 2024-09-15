@@ -42,7 +42,7 @@ namespace Application_Layer.Commands.UserCommands.Login
                     return CreateLoginResult(false, "Felaktigt lösenord.");
                 }
 
-                var token = _jwtTokenGenerator.GenerateToken(existingUser);
+                var token = await _jwtTokenGenerator.GenerateToken(existingUser);
                 return CreateLoginResult(true, null, token);
             }
             catch (Exception ex)
