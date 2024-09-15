@@ -2,9 +2,13 @@
 using Application_Layer.Commands.UserCommands.GetUserById;
 using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.DTO_s;
+using Domain_Layer.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace API_Layer.Controllers
@@ -60,6 +64,31 @@ namespace API_Layer.Controllers
             }
 
             return BadRequest($"User with ID {id} was not found.");
+        }
+
+        [Authorize]
+        [Authorize(Roles = "Admin")]
+        [HttpGet("admin-only")]
+        public IActionResult AdminOnly()
+        {
+            return Ok("This is an Admin-only area.");
+        }
+
+        [HttpGet("test-auth")]
+        public IActionResult TestAuth()
+        {
+            // Kontrollera om användaren är autentiserad
+            var isAuthenticated = User.Identity.IsAuthenticated;
+
+            // Hämta användarens claims
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+
+            // Returnera en respons som visar om användaren är autentiserad samt alla claims
+            return Ok(new
+            {
+                IsAuthenticated = isAuthenticated,
+                Claims = claims
+            });
         }
     }
 }

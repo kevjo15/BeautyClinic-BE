@@ -66,13 +66,6 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             _userController.Register(registerUserDTO);
         }
 
-
-        [TearDown]
-        public void TearDown()
-        {
-            _userController?.Dispose();
-        }
-
         [Test]
         public async Task Login_ReturnsOk_WhenLoginIsSuccessful()
         {
