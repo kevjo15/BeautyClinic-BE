@@ -74,21 +74,21 @@ namespace API_Layer.Controllers
             return Ok("This is an Admin-only area.");
         }
 
-        [HttpGet("test-auth")]
-        public IActionResult TestAuth()
-        {
-            // Kontrollera om användaren är autentiserad
-            var isAuthenticated = User.Identity.IsAuthenticated;
+        //[HttpGet("test-auth")]
+        //public IActionResult TestAuth()
+        //{
+        //    // Kontrollera om användaren är autentiserad
+        //    var isAuthenticated = User.Identity.IsAuthenticated;
 
-            // Hämta användarens claims
-            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+        //    // Hämta användarens claims
+        //    var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
 
-            // Returnera en respons som visar om användaren är autentiserad samt alla claims
-            return Ok(new
-            {
-                IsAuthenticated = isAuthenticated,
-                Claims = claims
-            });
-        }
+        //    // Returnera en respons som visar om användaren är autentiserad samt alla claims
+        //    return Ok(new
+        //    {
+        //        IsAuthenticated = isAuthenticated,
+        //        Claims = claims
+        //    });
+        //}
     }
 }
