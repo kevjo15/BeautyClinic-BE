@@ -6,12 +6,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application_Layer.Commands.UserCommands
+namespace Application_Layer.Commands.UserCommands.RegisterUser
 {
     public class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
     {
         public RegisterUserCommandValidator()
         {
+            RuleFor(user => user.NewUser.UserName)
+                .MustBeValidUserName();
+
             RuleFor(user => user.NewUser.FirstName)
                 .MustBeValidName();
 

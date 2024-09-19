@@ -9,5 +9,6 @@ namespace Infrastructure_Layer.Repositories.User
         Task<UserModel> FindByEmailAsync(string email);
         Task<UserModel> FindByIdAsync(string userId);
         Task<IdentityResult> RegisterUserAsync(UserModel newUser, string password);
+        Task<IdentityResult> UpdateUserAsync(UserModel user);
     }
 }

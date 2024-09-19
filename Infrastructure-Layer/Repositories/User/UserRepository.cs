@@ -40,5 +40,10 @@ namespace Infrastructure_Layer.Repositories.User
             var result = await _userManager.CreateAsync(newUser, password);
             return result;
         }
+
+        public async Task<IdentityResult> UpdateUserAsync(UserModel user)
+        {
+            return await _userManager.UpdateAsync(user);
+        }
     }
 }
