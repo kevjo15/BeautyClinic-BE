@@ -1,7 +1,8 @@
-﻿using Application_Layer.Commands.UserCommands;
-using Application_Layer.Commands.UserCommands.GetUserById;
-using Application_Layer.Commands.UserCommands.Login;
+﻿using Application_Layer.Commands.UserCommands.Login;
+using Application_Layer.Commands.UserCommands.RegisterUser;
+using Application_Layer.Commands.UserCommands.Update;
 using Application_Layer.DTO_s;
+using Application_Layer.Queries.UserQueries.GetUserById;
 using Domain_Layer.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace API_Layer.Controllers
 {
@@ -64,6 +64,24 @@ namespace API_Layer.Controllers
             }
 
             return BadRequest($"User with ID {id} was not found.");
+        }
+
+        [Authorize]
+        [HttpPost("me/update-profile")]
+        public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDTO updateUserProfileDTO)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                return Unauthorized("User is not logged in.");
+            }
+            var result = await _mediator.Send(new UpdateUserProfileCommand(userId, updateUserProfileDTO));
+            if (!result.Success)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result.UpdatedUserProfile);
         }
 
         [Authorize]

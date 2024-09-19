@@ -1,4 +1,4 @@
-﻿using Application_Layer.Commands.UserCommands;
+﻿using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTO_s;
 using AutoMapper;
 using Domain_Layer.Models;

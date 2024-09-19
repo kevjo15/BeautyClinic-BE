@@ -1,6 +1,6 @@
 ﻿using API_Layer.Controllers;
-using Application_Layer.Commands.UserCommands;
 using Application_Layer.Commands.UserCommands.Login;
+using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTO_s;
 using Application_Layer.Jwt;
 using Domain_Layer.Models;

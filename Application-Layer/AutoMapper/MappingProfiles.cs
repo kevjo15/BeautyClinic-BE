@@ -16,6 +16,8 @@ namespace Application_Layer.AutoMapper
         {
             CreateMap<RegisterUserDTO, UserModel>();
             CreateMap<LoginUserDTO, UserModel>();
+            CreateMap<UpdateUserProfileDTO, UserModel>();
+            CreateMap<UserModel, UpdateUserProfileDTO>();
         }
     }
 }
