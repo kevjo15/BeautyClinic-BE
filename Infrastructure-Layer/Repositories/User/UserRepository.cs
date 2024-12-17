@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure_Layer.Repositories.User
 {
@@ -35,15 +36,44 @@ namespace Infrastructure_Layer.Repositories.User
             return await _userManager.FindByIdAsync(userId);
         }
 
+        public async Task<UserModel> FindByRefreshTokenAsync(string refreshToken)
+        {
+            return await _userManager.Users
+                .FirstOrDefaultAsync(user => user.RefreshToken == refreshToken);
+        }
+
         public async Task<IdentityResult> RegisterUserAsync(UserModel newUser, string password)
         {
             var result = await _userManager.CreateAsync(newUser, password);
+            if (result.Succeeded)
+            {
+                // Assign default role
+                await _userManager.AddToRoleAsync(newUser, "Customer");
+            }
             return result;
         }
 
         public async Task<IdentityResult> UpdateUserAsync(UserModel user)
         {
             return await _userManager.UpdateAsync(user);
+        }
+
+        public async Task<bool> RevokeRefreshTokenAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await _userManager.UpdateAsync(user);
+
+            return true;
+        }
+
+        public async Task<IdentityResult> UpdatePasswordAsync(UserModel user, string newPassword)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return await _userManager.ResetPasswordAsync(user, token, newPassword);
         }
     }
 }

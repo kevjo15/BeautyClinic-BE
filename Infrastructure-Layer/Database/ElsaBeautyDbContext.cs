@@ -16,12 +16,22 @@ namespace Infrastructure_Layer.Database
         }
 
         public DbSet<UserModel> User { get; set; }
+        public DbSet<ServiceModel> Services { get; set; }
+        public DbSet<CategoryModel> Categories { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder);
+            builder.Entity<ServiceModel>()
+                .Property(s => s.Price)
+                .HasColumnType("decimal(18,2)");
 
+            builder.Entity<ServiceModel>()
+                .HasOne(s => s.Category)
+                .WithMany(c => c.Services)
+                .HasForeignKey(s => s.CategoryId);
+
+            base.OnModelCreating(builder);
         }
     }
 }

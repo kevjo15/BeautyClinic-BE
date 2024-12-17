@@ -14,13 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Lägg till tjänster från Application_Layer
+// Lï¿½gg till tjï¿½nster frï¿½n Application_Layer
 builder.Services.AddApplicationLayer();
 
-// Lägg till tjänster från Infrastructure_Layer
+// Lï¿½gg till tjï¿½nster frï¿½n Infrastructure_Layer
 builder.Services.AddInfrastructureLayer(builder.Configuration);
 
-// Läs in JWT-inställningar från appsettings.json
+// Lï¿½s in JWT-instï¿½llningar frï¿½n appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
@@ -48,7 +48,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Lägg till auktorisering med en AdminPolicy
+// Lï¿½gg till auktorisering med en AdminPolicy
 builder.Services.AddAuthorization();
 
 // Konfigurera Identity
@@ -94,6 +94,9 @@ builder.Services.AddSwaggerGen(c =>
 
 
 var app = builder.Build();
+
+// Seed data
+await app.Services.SeedDataAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

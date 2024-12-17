@@ -19,6 +19,9 @@ namespace Application_Layer.AutoMapper
             CreateMap<UpdateUserProfileDTO, UserModel>();
             CreateMap<UserModel, UpdateUserProfileDTO>();
             CreateMap<UserModel, GetUserByIdResponseDTO>();
+            CreateMap<ServiceModel, ServiceDTO>().ReverseMap();
+            CreateMap<CategoryModel, CategoryDTO>().ReverseMap();
+            CreateMap<ServiceDTO, ServiceModel>().ReverseMap();
         }
     }
 }

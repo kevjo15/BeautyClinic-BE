@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Application_Layer.Jwt
 {
+
     public class JwtTokenGenerator : IJwtTokenGenerator
     {
         private readonly IConfiguration _configuration;
@@ -55,6 +56,13 @@ namespace Application_Layer.Jwt
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
+        }
+
+        public async Task<string> GenerateRefreshToken(UserModel user)
+        {
+            var refreshToken = Guid.NewGuid().ToString(); // En enkel implementation
+            // Här kan du spara refreshToken i databasen kopplat till användaren
+            return refreshToken;
         }
     }
 }
