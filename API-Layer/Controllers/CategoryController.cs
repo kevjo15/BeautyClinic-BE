@@ -25,7 +25,7 @@ namespace API_Layer.Controllers
         }
 
         // GET: api/categories
-        [HttpGet]
+        [HttpGet("GetAllCategories")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllCategories()
         {

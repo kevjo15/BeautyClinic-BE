@@ -26,7 +26,7 @@ namespace API_Layer.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet]
+        [HttpGet("GetAllServices")]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllServices()
         {
