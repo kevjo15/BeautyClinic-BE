@@ -3,8 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using Domain_Layer.Models;
+using Application_Layer.Commands.CategoryCommands.CreateCategory;
 
-public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CategoryDTO>
+public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CreateCategoryResult>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
@@ -15,10 +16,16 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _mapper = mapper;
     }
 
-    public async Task<CategoryDTO> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<CreateCategoryResult> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = _mapper.Map<CategoryModel>(request.CategoryCreateDto);
+        var category = new CategoryModel { Name = request.CategoryName };
         await _categoryRepository.AddCategoryAsync(category);
-        return _mapper.Map<CategoryDTO>(category);
+        
+        return new CreateCategoryResult
+        {
+            Id = category.Id,
+            Message = "Category created successfully.",
+            Success = true
+        };
     }
 } 

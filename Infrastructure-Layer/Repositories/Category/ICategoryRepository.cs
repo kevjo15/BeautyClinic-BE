@@ -11,4 +11,5 @@ public interface ICategoryRepository
     Task<bool> DeleteCategoryAsync(Guid id);
     Task<bool> AddServiceToCategoryAsync(Guid categoryId, ServiceModel service);
     Task<bool> RemoveServiceFromCategoryAsync(Guid categoryId, Guid serviceId);
+    Task<CategoryModel> GetByIdAsync(Guid id);
 } 

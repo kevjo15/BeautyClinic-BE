@@ -1,4 +1,7 @@
-public class CategoryCreateDTO
+namespace Application_Layer.DTOs
 {
-    public string Name { get; set; }
+    public class CategoryCreateDTO
+    {
+        public string CategoryName { get; set; }
+    }
 } 

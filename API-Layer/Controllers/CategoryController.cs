@@ -10,6 +10,9 @@ using Application_Layer.Commands.CategoryCommands.AddServiceToCategory;
 using Application_Layer.Commands.CategoryCommands.RemoveServiceFromCategory;
 using Application_Layer.Commands.CategoryCommands.DeleteCategory;
 using Application_Layer.Queries.CategoryQueries;
+using Application_Layer.Commands.CategoryCommands.CreateCategory;
+using Application_Layer.Commands.CategoryCommands.UpdateCategory;
+using Application_Layer.DTOs;
 
 namespace API_Layer.Controllers
 {
@@ -39,7 +42,7 @@ namespace API_Layer.Controllers
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDto)
         {
-            var command = new CreateCategoryCommand(categoryCreateDto);
+            var command = new CreateCategoryCommand(categoryCreateDto.CategoryName);
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetAllCategories), new { id = result.Id }, result);
         }
@@ -47,13 +50,13 @@ namespace API_Layer.Controllers
         // PUT: api/categories/update/{id}
         [HttpPut("update/{id}")]
         [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryModel category)
+        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryDTO categoryDto)
         {
-            if (id != category.Id) return BadRequest();
-            var command = new UpdateCategoryCommand(category);
+            var command = new UpdateCategoryCommand(id, categoryDto);
             var result = await _mediator.Send(command);
-            if (!result) return NotFound();
-            return NoContent();
+
+            if (!result.Success) return NotFound(result.Message);
+            return Ok(result);
         }
 
         // DELETE: api/categories/delete/{id}

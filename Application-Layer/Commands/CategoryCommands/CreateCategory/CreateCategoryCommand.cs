@@ -1,11 +1,15 @@
 using MediatR;
+using Application_Layer.Commands.CategoryCommands.CreateCategory;
 
-public class CreateCategoryCommand : IRequest<CategoryDTO>
+namespace Application_Layer.Commands.CategoryCommands.CreateCategory
 {
-    public CategoryCreateDTO CategoryCreateDto { get; }
-
-    public CreateCategoryCommand(CategoryCreateDTO categoryCreateDto)
+    public class CreateCategoryCommand : IRequest<CreateCategoryResult>
     {
-        CategoryCreateDto = categoryCreateDto;
+        public string CategoryName { get; }
+
+        public CreateCategoryCommand(string categoryName)
+        {
+            CategoryName = categoryName;
+        }
     }
 } 

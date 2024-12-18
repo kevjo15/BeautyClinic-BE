@@ -1,12 +1,17 @@
 using MediatR;
-using Domain_Layer.Models;
+using Application_Layer.DTOs;
 
-public class UpdateCategoryCommand : IRequest<bool>
+namespace Application_Layer.Commands.CategoryCommands.UpdateCategory
 {
-    public CategoryModel Category { get; }
-
-    public UpdateCategoryCommand(CategoryModel category)
+    public class UpdateCategoryCommand : IRequest<UpdateCategoryResult>
     {
-        Category = category;
+        public Guid Id { get; }
+        public CategoryDTO CategoryDto { get; }
+
+        public UpdateCategoryCommand(Guid id, CategoryDTO categoryDto)
+        {
+            Id = id;
+            CategoryDto = categoryDto;
+        }
     }
 } 
