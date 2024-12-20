@@ -18,6 +18,7 @@ namespace Infrastructure_Layer.Database
         public DbSet<UserModel> User { get; set; }
         public DbSet<ServiceModel> Services { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
+        public DbSet<BookingModel> Bookings { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
