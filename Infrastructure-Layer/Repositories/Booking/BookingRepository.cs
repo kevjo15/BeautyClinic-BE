@@ -1,7 +1,6 @@
 using Domain_Layer.Models;
 using Application_Layer.Interfaces;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure_Layer.Database;
