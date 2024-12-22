@@ -7,9 +7,9 @@ namespace Application_Layer.Commands.ServiceCommands.CreateService
     {
         public ServiceDTO ServiceDto { get; }
 
-        public CreateServiceCommand(ServiceDTO serviceDto)
+        public CreateServiceCommand(ServiceDTO ServiceModel)
         {
-            ServiceDto = serviceDto;
+            ServiceDto = ServiceModel;
         }
     }
 } 

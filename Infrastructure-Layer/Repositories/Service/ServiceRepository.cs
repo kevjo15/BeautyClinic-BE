@@ -1,3 +1,4 @@
+using Application_Layer.Interfaces;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
@@ -55,5 +56,6 @@ namespace Infrastructure_Layer.Repositories.Service
                 .Where(s => s.CategoryId == categoryId)
                 .ToListAsync();
         }
+
     }
 } 

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.BookingCommands.CreateBooking
 {
-    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, Guid>
+    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, CreateBookingResult>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
@@ -18,15 +18,26 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
             _mapper = mapper;
         }
 
-        public async Task<Guid> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
+        public async Task<CreateBookingResult> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
         {
-            var booking = _mapper.Map<BookingModel>(request.BookingDto);
-            booking.Id = Guid.NewGuid();
-            booking.UserId = request.BookingDto.UserId;
+            try
+            {
+                // Map DTO to domain model
+                var booking = _mapper.Map<BookingModel>(request.Booking);
+                booking.Id = Guid.NewGuid();
+                booking.UserId = request.Booking.UserId;
 
-            await _bookingRepository.AddAsync(booking);
+                // Save booking to repository
+                await _bookingRepository.AddAsync(booking);
 
-            return booking.Id;
+                // Return success result
+                return CreateBookingResult.SuccessResult("Booking created successfully.", booking);
+            }
+            catch (Exception ex)
+            {
+                // Return failure result
+                return CreateBookingResult.FailureResult($"Failed to create booking: {ex.Message}");
+            }
         }
     }
 } 

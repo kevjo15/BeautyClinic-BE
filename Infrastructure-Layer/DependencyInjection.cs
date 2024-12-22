@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Infrastructure_Layer.Repositories.Service;
+using Application_Layer.Interfaces;
+using Infrastructure_Layer.Repositories;
 
 
 namespace Infrastructure_Layer
@@ -26,6 +28,7 @@ namespace Infrastructure_Layer
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             return services;

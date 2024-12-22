@@ -1,12 +1,15 @@
 using MediatR;
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 
-public class CreateBookingCommand : IRequest<Guid>
+namespace Application_Layer.Commands.BookingCommands.CreateBooking
 {
-    public BookingDTO BookingDto { get; }
-
-    public CreateBookingCommand(BookingDTO bookingDto)
+    public class CreateBookingCommand : IRequest<CreateBookingResult>
     {
-        BookingDto = bookingDto;
+        public CreateBookingDTO Booking { get; }
+
+        public CreateBookingCommand(CreateBookingDTO booking)
+        {
+            Booking = booking;
+        }
     }
-} 
+}

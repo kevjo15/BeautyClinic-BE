@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Application_Layer.DTO_s;
 using AutoMapper;
 using Infrastructure_Layer.Repositories.Service;
+using Application_Layer.Interfaces;
 
 namespace Application_Layer.Queries.ServiceQueries
 {

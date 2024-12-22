@@ -8,8 +8,10 @@ namespace Application_Layer.Interfaces
     {
     Task<BookingModel> GetByIdAsync(Guid id);
     Task<List<BookingModel>> GetByUserIdAsync(string userId);
+    Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end);
     Task AddAsync(BookingModel booking);
     Task UpdateAsync(BookingModel booking);
     Task DeleteAsync(Guid id);
+    Task<List<BookingModel>> GetAllAsync();
     }
-} 
+}

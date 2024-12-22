@@ -46,5 +46,19 @@ namespace Infrastructure_Layer.Repositories
                 .Where(b => b.UserId == userId)
                 .ToListAsync();
         }
+
+        public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end)
+        {
+            return await _context.Bookings
+                .Where(b => (b.StartTime >= start && b.StartTime < end) || 
+                           (b.EndTime > start && b.EndTime <= end) ||
+                           (b.StartTime <= start && b.EndTime >= end))
+                .ToListAsync();
+        }
+
+        public async Task<List<BookingModel>> GetAllAsync()
+        {
+            return await _context.Bookings.ToListAsync();
+        }
     }
-} 
+}
