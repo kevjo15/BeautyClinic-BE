@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 using Infrastructure_Layer.Repositories.Service;
 using Application_Layer.Interfaces;
 using Infrastructure_Layer.Repositories;
+using Infrastructure_Layer.Repositories.Conversation;
+using Application.Common.Interfaces;
+using Infrastructure_Layer.Repositories.Message;
 
 
 namespace Infrastructure_Layer
@@ -29,6 +32,8 @@ namespace Infrastructure_Layer
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<IConversationRepository, ConversationRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             return services;

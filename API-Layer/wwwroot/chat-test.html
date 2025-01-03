@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>SignalR Chat Test</title>
+    <style>
+      .container {
+        margin: 20px;
+      }
+      .input-group {
+        margin: 10px 0;
+      }
+      .message {
+        margin: 5px 0;
+        padding: 5px;
+        border-bottom: 1px solid #eee;
+      }
+      .timestamp {
+        color: #666;
+        font-size: 0.8em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>SignalR Chat Test</h3>
+      <div class="input-group">
+        <label>User ID (Guid):</label>
+        <input type="text" id="userId" />
+      </div>
+      <div class="input-group">
+        <label>Conversation ID (Guid):</label>
+        <input type="text" id="conversationId" />
+        <button onclick="joinConversation()">Join Conversation</button>
+        <button onclick="leaveConversation()">Leave Conversation</button>
+      </div>
+      <div class="input-group">
+        <label>Message:</label>
+        <input type="text" id="messageInput" />
+        <button onclick="sendMessage()">Send Message</button>
+      </div>
+      <div>
+        <h4>Messages:</h4>
+        <div id="messagesList"></div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <script>
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+      connection.on("ReceiveMessage", (message) => {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message";
+        const time = new Date(message.sentAt).toLocaleTimeString();
+        messageDiv.innerHTML = `
+                <div>From ${message.senderId}: ${message.content}</div>
+                <div class="timestamp">${time}</div>
+            `;
+        document.getElementById("messagesList").appendChild(messageDiv);
+      });
+
+      async function joinConversation() {
+        const conversationId = document.getElementById("conversationId").value;
+        try {
+          await connection.invoke("JoinConversation", conversationId);
+          console.log("Joined conversation:", conversationId);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function leaveConversation() {
+        const conversationId = document.getElementById("conversationId").value;
+        try {
+          await connection.invoke("LeaveConversation", conversationId);
+          console.log("Left conversation:", conversationId);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      async function sendMessage() {
+        const userId = document.getElementById("userId").value;
+        const conversationId = document.getElementById("conversationId").value;
+        const message = document.getElementById("messageInput").value;
+
+        try {
+          await connection.invoke(
+            "SendMessage",
+            userId,
+            message,
+            conversationId
+          );
+          document.getElementById("messageInput").value = "";
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      connection
+        .start()
+        .then(() => console.log("Connected to SignalR"))
+        .catch((err) => console.error(err));
+    </script>
+  </body>
+</html>

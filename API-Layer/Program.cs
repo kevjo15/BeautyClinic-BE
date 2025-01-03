@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
+using API_Layer.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -62,6 +63,40 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
+// Add SignalR services
+builder.Services.AddSignalR();
+
+// Add CORS policy for SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRPolicy", policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowed(_ => true); // Tillåt alla origins under utveckling
+    });
+});
+
+// Konfigurera JWT för SignalR
+builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
@@ -108,10 +143,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Enable serving static files
+app.UseStaticFiles();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
+// Use CORS before routing
+app.UseCors("SignalRPolicy");
+
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

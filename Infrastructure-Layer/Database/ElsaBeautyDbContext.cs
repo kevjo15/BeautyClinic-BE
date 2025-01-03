@@ -1,4 +1,4 @@
-﻿using Domain_Layer.Models;
+﻿﻿using Domain_Layer.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -19,6 +19,8 @@ namespace Infrastructure_Layer.Database
         public DbSet<ServiceModel> Services { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<BookingModel> Bookings { get; set; }
+        public DbSet<ConversationModel> Conversations { get; set; }
+        public DbSet<MessageModel> Messages { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -31,6 +33,20 @@ namespace Infrastructure_Layer.Database
                 .HasOne(s => s.Category)
                 .WithMany(c => c.Services)
                 .HasForeignKey(s => s.CategoryId);
+
+            builder.Entity<ConversationModel>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.HasMany(c => c.Messages)
+                      .WithOne()
+                      .HasForeignKey(m => m.ConversationId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<MessageModel>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+            });
 
             base.OnModelCreating(builder);
         }

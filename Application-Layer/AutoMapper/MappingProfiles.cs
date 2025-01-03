@@ -1,5 +1,6 @@
 ﻿﻿using Application_Layer.DTO_s;
 using Application_Layer.DTOs;
+using ApplicationLayer.DTOs;
 using AutoMapper;
 using Domain_Layer.Models;
 using System;
@@ -26,6 +27,7 @@ namespace Application_Layer.AutoMapper
             CreateMap<BookingModel, BookingDTO>().ReverseMap();
             CreateMap<CreateBookingDTO, BookingModel>().ReverseMap();
             CreateMap<BookingModel, UpdateBookingDTO>().ReverseMap();
+            CreateMap<MessageModel, SendMessageDTO>().ReverseMap();
         }
     }
 }
