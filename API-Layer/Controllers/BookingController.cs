@@ -25,7 +25,7 @@ namespace API_Layer.Controllers
         }
 
         [HttpPost("CreateBooking")]
-        public async Task<ActionResult<BookingDTO>> Create([FromBody] CreateBookingDTO createDto)
+        public async Task<ActionResult<BookingDTO>> CreateBooking([FromBody] CreateBookingDTO createDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))

@@ -1,4 +1,4 @@
-﻿using Application_Layer.Jwt;
+﻿﻿using Application_Layer.Jwt;
 using Application_Layer.PipelineBehaviour;
 using FluentValidation;
 using MediatR;
@@ -28,7 +28,6 @@ namespace Application_Layer
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
 
             return services;

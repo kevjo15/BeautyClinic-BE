@@ -1,4 +1,4 @@
-﻿﻿using Domain_Layer.Models;
+﻿﻿﻿﻿﻿﻿using Domain_Layer.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,6 +21,7 @@ namespace Infrastructure_Layer.Database
         public DbSet<BookingModel> Bookings { get; set; }
         public DbSet<ConversationModel> Conversations { get; set; }
         public DbSet<MessageModel> Messages { get; set; }
+        public DbSet<NotificationModel> Notifications { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -46,6 +47,20 @@ namespace Infrastructure_Layer.Database
             builder.Entity<MessageModel>(entity =>
             {
                 entity.HasKey(m => m.Id);
+            });
+
+            builder.Entity<NotificationModel>(entity =>
+            {
+                entity.HasKey(n => n.Id);
+                entity.HasOne(n => n.User)
+                      .WithMany()
+                      .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(n => n.Booking)
+                      .WithMany()
+                      .HasForeignKey(n => n.BookingId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             base.OnModelCreating(builder);

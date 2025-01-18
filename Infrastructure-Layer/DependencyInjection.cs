@@ -1,4 +1,4 @@
-﻿using Infrastructure_Layer.Database;
+﻿﻿using Infrastructure_Layer.Database;
 using Infrastructure_Layer.Repositories.User;
 using Infrastructure_Layer.DataSeeder;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +16,7 @@ using Infrastructure_Layer.Repositories;
 using Infrastructure_Layer.Repositories.Conversation;
 using Application.Common.Interfaces;
 using Infrastructure_Layer.Repositories.Message;
+using Infrastructure_Layer.Repositories.Notification;
 
 
 namespace Infrastructure_Layer
@@ -34,6 +35,7 @@ namespace Infrastructure_Layer
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<IConversationRepository, ConversationRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             return services;

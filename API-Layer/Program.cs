@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 using API_Layer.Hubs;
+using Application_Layer.Interfaces;
+using API_Layer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +66,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Add SignalR services
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+});
 
 // Add CORS policy for SignalR
 builder.Services.AddCors(options =>
@@ -78,6 +83,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+
 // Konfigurera JWT för SignalR
 builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
 {
@@ -88,7 +95,8 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
             
-            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            if (!string.IsNullOrEmpty(accessToken) && 
+                (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub")))
             {
                 context.Token = accessToken;
             }
@@ -155,5 +163,6 @@ app.UseCors("SignalRPolicy");
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
