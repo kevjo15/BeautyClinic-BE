@@ -1,7 +1,4 @@
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Application_Layer.Interfaces;
 using AutoMapper;
 using Application_Layer.DTOs;
@@ -22,4 +19,4 @@ public class GetBookingsByUserIdQueryHandler : IRequestHandler<GetBookingsByUser
         var bookings = await _bookingRepository.GetByUserIdAsync(request.UserId);
         return _mapper.Map<List<BookingDTO>>(bookings);
     }
-} 
+}

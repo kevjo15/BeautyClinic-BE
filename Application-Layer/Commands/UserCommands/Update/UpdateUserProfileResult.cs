@@ -1,10 +1,4 @@
 ﻿using Application_Layer.DTO_s;
-using Domain_Layer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.Update
 {
@@ -19,6 +13,6 @@ namespace Application_Layer.Commands.UserCommands.Update
             Success = success;
             UpdatedUserProfile = updatedUserProfile;
             Errors = errors ?? new List<string>();
-        }   
+        }
     }
 }

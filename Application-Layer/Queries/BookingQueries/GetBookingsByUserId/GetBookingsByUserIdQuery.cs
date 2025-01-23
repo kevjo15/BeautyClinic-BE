@@ -1,6 +1,5 @@
 using Application_Layer.DTOs;
 using MediatR;
-using System.Collections.Generic;
 
 public class GetBookingsByUserIdQuery : IRequest<List<BookingDTO>>
 {
@@ -10,4 +9,4 @@ public class GetBookingsByUserIdQuery : IRequest<List<BookingDTO>>
     {
         UserId = userId;
     }
-} 
+}

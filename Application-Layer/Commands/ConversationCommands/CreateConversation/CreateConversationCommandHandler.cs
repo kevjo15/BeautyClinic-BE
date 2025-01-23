@@ -1,10 +1,7 @@
-using Application.Common.Interfaces;
 using Application.Features.Conversations.Commands;
+using Application_Layer.Interfaces;
 using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.Conversation;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application.Features.Conversations.Handlers
 {

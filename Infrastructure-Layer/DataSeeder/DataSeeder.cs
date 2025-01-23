@@ -1,10 +1,6 @@
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure_Layer.DataSeeder
 {
@@ -37,9 +33,9 @@ namespace Infrastructure_Layer.DataSeeder
             var adminEmail = "admin@example.com";
             if (await _userManager.FindByEmailAsync(adminEmail) == null)
             {
-                var adminUser = new UserModel 
-                { 
-                    UserName = "admin", 
+                var adminUser = new UserModel
+                {
+                    UserName = "admin",
                     Email = adminEmail,
                     FirstName = "Admin",
                     LastName = "Admin"
@@ -157,4 +153,4 @@ namespace Infrastructure_Layer.DataSeeder
             }
         }
     }
-} 
+}

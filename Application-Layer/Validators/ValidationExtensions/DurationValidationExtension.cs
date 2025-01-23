@@ -1,5 +1,4 @@
 using FluentValidation;
-using System;
 
 namespace Application_Layer.Validators.ValidationExtensions
 {
@@ -11,4 +10,4 @@ namespace Application_Layer.Validators.ValidationExtensions
                 .GreaterThan(TimeSpan.Zero).WithMessage("Duration must be greater than zero.");
         }
     }
-} 
+}

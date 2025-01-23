@@ -1,6 +1,6 @@
 using Domain_Layer.Models;
 
-namespace Application.Common.Interfaces
+namespace Application_Layer.Interfaces
 {
     public interface IMessageRepository
     {

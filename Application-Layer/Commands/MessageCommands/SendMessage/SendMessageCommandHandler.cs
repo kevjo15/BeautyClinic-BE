@@ -1,8 +1,7 @@
-using Application.Common.Interfaces;
 using Domain_Layer.Models;
 using MediatR;
 using AutoMapper;
-using Infrastructure_Layer.Repositories.Conversation;
+using Application_Layer.Interfaces;
 
 namespace Application.Features.MessageCommands.SendMessage
 {

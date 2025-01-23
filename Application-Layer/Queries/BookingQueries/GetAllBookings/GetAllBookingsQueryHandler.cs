@@ -1,8 +1,7 @@
- using MediatR;
+using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
-using Domain_Layer.Models;
 
 namespace Application_Layer.Queries.BookingQueries.GetAllBookings
 {

@@ -1,11 +1,6 @@
 using MediatR;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Application_Layer.DTO_s;
 using AutoMapper;
-using Infrastructure_Layer.Repositories.Service;
 using Application_Layer.Interfaces;
 
 namespace Application_Layer.Queries.ServiceQueries
@@ -28,4 +23,4 @@ namespace Application_Layer.Queries.ServiceQueries
             return _mapper.Map<IEnumerable<ServiceDTO>>(filteredServices);
         }
     }
-} 
+}

@@ -1,15 +1,10 @@
 ﻿using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.DTO_s;
+using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
 using AutoMapper;
 using Domain_Layer.Models;
 using FakeItEasy;
-using Infrastructure_Layer.Repositories.User;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Test_Layer.UserTests.UserUnitTests
 {

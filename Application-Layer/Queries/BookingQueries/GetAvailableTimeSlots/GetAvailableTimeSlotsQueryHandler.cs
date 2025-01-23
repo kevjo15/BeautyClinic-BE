@@ -1,13 +1,6 @@
 using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using Domain_Layer.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Infrastructure_Layer.Repositories.Service;
 
 namespace Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots
 {

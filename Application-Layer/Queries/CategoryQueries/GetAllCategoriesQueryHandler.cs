@@ -1,7 +1,4 @@
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Application_Layer.DTOs;
 
 namespace Application_Layer.Queries.CategoryQueries
@@ -24,4 +21,4 @@ namespace Application_Layer.Queries.CategoryQueries
             }).ToList();
         }
     }
-} 
+}

@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Domain_Layer.Models;
 using Application_Layer.DTOs;
-using Application_Layer.Commands.NotificationCommands.CreateNotification;
-using MediatR;
 
 namespace API_Layer.Hubs
 {
@@ -60,20 +57,20 @@ namespace API_Layer.Hubs
 
 
         public async Task SendBookingNotification(string userId, string title, string message, NotificationType type)
+        {
+            var notificationDto = new NotificationDTO
             {
-                var notificationDto = new NotificationDTO
-                {
-                    Id = Guid.NewGuid(),
-                    Title = title,
-                    Message = message,
-                    Type = type,
-                    CreatedAt = DateTime.UtcNow,
-                    IsRead = false,
-                    UserId = userId
-                };
+                Id = Guid.NewGuid(),
+                Title = title,
+                Message = message,
+                Type = type,
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false,
+                UserId = userId
+            };
 
-                await Clients.Group(userId).ReceiveNotification(notificationDto);
-            }
+            await Clients.Group(userId).ReceiveNotification(notificationDto);
+        }
 
     }
 }

@@ -1,31 +1,31 @@
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
 using Domain_Layer.Models;
-using Application_Layer.Commands.CategoryCommands.CreateCategory;
 
-public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CreateCategoryResult>
+namespace Application_Layer.Commands.CategoryCommands.CreateCategory
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IMapper _mapper;
-
-    public CreateCategoryCommandHandler(ICategoryRepository categoryRepository, IMapper mapper)
+    public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CreateCategoryResult>
     {
-        _categoryRepository = categoryRepository;
-        _mapper = mapper;
-    }
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
 
-    public async Task<CreateCategoryResult> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
-    {
-        var category = new CategoryModel { Name = request.CategoryName };
-        await _categoryRepository.AddCategoryAsync(category);
-        
-        return new CreateCategoryResult
+        public CreateCategoryCommandHandler(ICategoryRepository categoryRepository, IMapper mapper)
         {
-            Id = category.Id,
-            Message = "Category created successfully.",
-            Success = true
-        };
+            _categoryRepository = categoryRepository;
+            _mapper = mapper;
+        }
+
+        public async Task<CreateCategoryResult> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+        {
+            var category = new CategoryModel { Name = request.CategoryName };
+            await _categoryRepository.AddCategoryAsync(category);
+
+            return new CreateCategoryResult
+            {
+                Id = category.Id,
+                Message = "Category created successfully.",
+                Success = true
+            };
+        }
     }
-} 
+}

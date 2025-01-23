@@ -1,9 +1,6 @@
+using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
-using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.RefreshToken
 {

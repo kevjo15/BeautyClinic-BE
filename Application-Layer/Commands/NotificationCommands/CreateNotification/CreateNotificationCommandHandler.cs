@@ -1,8 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
+using Application_Layer.Interfaces;
 using AutoMapper;
 using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.Notification;
 using MediatR;
 
 namespace Application_Layer.Commands.NotificationCommands.CreateNotification
@@ -21,7 +19,7 @@ namespace Application_Layer.Commands.NotificationCommands.CreateNotification
         public async Task<CreateNotificationResult> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
         {
             var notification = _mapper.Map<NotificationModel>(request);
-            
+
             await _notificationRepository.CreateAsync(notification);
 
             return _mapper.Map<CreateNotificationResult>(notification);

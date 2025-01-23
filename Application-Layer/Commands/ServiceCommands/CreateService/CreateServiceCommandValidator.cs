@@ -1,5 +1,4 @@
 using FluentValidation;
-using Application_Layer.DTO_s;
 using Application_Layer.Validators.ValidationExtensions;
 
 namespace Application_Layer.Commands.ServiceCommands.CreateService
@@ -21,4 +20,4 @@ namespace Application_Layer.Commands.ServiceCommands.CreateService
                 .MustBeValidPrice();
         }
     }
-} 
+}

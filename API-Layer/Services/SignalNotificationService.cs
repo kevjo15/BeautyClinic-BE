@@ -1,11 +1,8 @@
 using Application_Layer.Interfaces;
 using Domain_Layer.Models;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Threading.Tasks;
 using API_Layer.Hubs;
 using Application_Layer.DTOs;
-using MediatR;
 
 namespace API_Layer.Services
 {

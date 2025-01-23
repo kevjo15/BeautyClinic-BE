@@ -1,7 +1,4 @@
-using Domain_Layer.Models;
 using Application_Layer.Interfaces;
-using System;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure_Layer.Database;
 
@@ -50,7 +47,7 @@ namespace Infrastructure_Layer.Repositories
         public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end)
         {
             return await _context.Bookings
-                .Where(b => (b.StartTime >= start && b.StartTime < end) || 
+                .Where(b => (b.StartTime >= start && b.StartTime < end) ||
                            (b.EndTime > start && b.EndTime <= end) ||
                            (b.StartTime <= start && b.EndTime >= end))
                 .ToListAsync();

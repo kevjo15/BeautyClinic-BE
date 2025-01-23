@@ -1,5 +1,3 @@
-using System;
-
 namespace Domain_Layer.Models;
 
 public class NotificationModel

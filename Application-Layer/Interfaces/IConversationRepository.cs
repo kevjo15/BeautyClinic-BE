@@ -1,6 +1,6 @@
 using Domain_Layer.Models;
 
-namespace Infrastructure_Layer.Repositories.Conversation
+namespace Application_Layer.Interfaces
 {
     public interface IConversationRepository
     {

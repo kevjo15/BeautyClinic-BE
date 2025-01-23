@@ -1,10 +1,7 @@
 using MediatR;
 using AutoMapper;
 using Domain_Layer.Models;
-using Application_Layer.Interfaces; // <--- Addera detta
-using System.Threading;
-using System.Threading.Tasks;
-using Infrastructure_Layer.Repositories.Service;
+using Application_Layer.Interfaces;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
 
 namespace Application_Layer.Commands.BookingCommands.CreateBooking
@@ -16,7 +13,6 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
         private readonly IServiceRepository _serviceRepository;
         private readonly IMediator _mediator;
 
-        // 1) Lägg till
         private readonly INotificationService _notificationService;
 
         public CreateBookingCommandHandler(
@@ -24,14 +20,14 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
             IMapper mapper,
             IServiceRepository serviceRepository,
             IMediator mediator,
-            INotificationService notificationService // <---
+            INotificationService notificationService
         )
         {
             _bookingRepository = bookingRepository;
             _mapper = mapper;
             _serviceRepository = serviceRepository;
             _mediator = mediator;
-            _notificationService = notificationService; // <---
+            _notificationService = notificationService;
         }
 
         public async Task<CreateBookingResult> Handle(CreateBookingCommand request, CancellationToken cancellationToken)

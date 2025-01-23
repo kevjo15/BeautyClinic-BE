@@ -1,10 +1,7 @@
 using MediatR;
-using Infrastructure_Layer.Repositories.Service;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Application_Layer.DTO_s;
 using AutoMapper;
+using Application_Layer.Interfaces;
 
 public class GetServicesByCategoryQueryHandler : IRequestHandler<GetServicesByCategoryQuery, IEnumerable<ServiceDTO>>
 {
@@ -22,4 +19,4 @@ public class GetServicesByCategoryQueryHandler : IRequestHandler<GetServicesByCa
         var services = await _serviceRepository.GetServicesByCategoryAsync(request.CategoryId);
         return _mapper.Map<IEnumerable<ServiceDTO>>(services);
     }
-} 
+}

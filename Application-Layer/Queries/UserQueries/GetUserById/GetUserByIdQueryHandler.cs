@@ -1,13 +1,7 @@
 ﻿using Application_Layer.DTO_s;
+using Application_Layer.Interfaces;
 using AutoMapper;
-using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Queries.UserQueries.GetUserById
 {

@@ -1,6 +1,4 @@
 using MediatR;
-using System;
-using System.Collections.Generic;
 using Domain_Layer.Models;
 
 namespace Application.Features.Conversations.Queries

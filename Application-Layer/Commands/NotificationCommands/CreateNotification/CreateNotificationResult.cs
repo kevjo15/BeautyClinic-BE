@@ -1,5 +1,3 @@
-using System;
-
 namespace Application_Layer.Commands.NotificationCommands.CreateNotification
 {
     public class CreateNotificationResult

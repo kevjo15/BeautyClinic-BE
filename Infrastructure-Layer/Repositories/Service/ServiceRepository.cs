@@ -1,9 +1,7 @@
+using Application_Layer.Interfaces;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Infrastructure_Layer.Repositories.Service
 {

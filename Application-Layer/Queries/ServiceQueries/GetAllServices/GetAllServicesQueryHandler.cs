@@ -1,10 +1,7 @@
 using Application_Layer.DTO_s;
+using Application_Layer.Interfaces;
 using AutoMapper;
-using Infrastructure_Layer.Repositories.Service;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Queries.ServiceQueries.GetAllServices
 {
@@ -25,4 +22,4 @@ namespace Application_Layer.Queries.ServiceQueries.GetAllServices
             return _mapper.Map<IEnumerable<ServiceDTO>>(services);
         }
     }
-} 
+}

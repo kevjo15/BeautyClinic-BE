@@ -1,10 +1,7 @@
+using Application_Layer.Interfaces;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure_Layer.Repositories.Notification
 {
@@ -21,10 +18,10 @@ namespace Infrastructure_Layer.Repositories.Notification
         {
             notification.CreatedAt = DateTime.UtcNow;
             notification.IsRead = false;
-            
+
             await _context.Notifications.AddAsync(notification);
             await _context.SaveChangesAsync();
-            
+
             return notification;
         }
 
@@ -51,7 +48,7 @@ namespace Infrastructure_Layer.Repositories.Notification
                 throw new KeyNotFoundException($"Notification with ID {id} not found");
 
             notification.IsRead = true;
-            
+
             await _context.SaveChangesAsync();
             return notification;
         }

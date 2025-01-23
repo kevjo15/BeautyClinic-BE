@@ -1,5 +1,4 @@
 using Application_Layer.DTO_s;
-using Domain_Layer.Models;
 using MediatR;
 
 namespace Application_Layer.Commands.ServiceCommands.UpdateService
@@ -15,4 +14,4 @@ namespace Application_Layer.Commands.ServiceCommands.UpdateService
             ServiceDto = serviceDto;
         }
     }
-} 
+}

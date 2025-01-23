@@ -1,11 +1,7 @@
 using Application_Layer.DTOs;
+using Application_Layer.Interfaces;
 using AutoMapper;
-using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.Notification;
 using MediatR;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Queries.NotificationQueries
 {
@@ -15,7 +11,7 @@ namespace Application_Layer.Queries.NotificationQueries
         private readonly IMapper _mapper;
 
         public GetUserNotificationsQueryHandler(
-            INotificationRepository notificationRepository, 
+            INotificationRepository notificationRepository,
             IMapper mapper)
         {
             _notificationRepository = notificationRepository;

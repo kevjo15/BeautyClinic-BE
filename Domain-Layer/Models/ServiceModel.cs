@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain_Layer.Models
@@ -14,4 +13,4 @@ namespace Domain_Layer.Models
         public Guid? CategoryId { get; set; }
         public CategoryModel Category { get; set; }
     }
-} 
+}

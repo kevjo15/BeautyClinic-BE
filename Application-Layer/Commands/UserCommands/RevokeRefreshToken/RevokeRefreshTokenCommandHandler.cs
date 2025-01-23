@@ -1,7 +1,5 @@
-using Infrastructure_Layer.Repositories.User;
+using Application_Layer.Interfaces;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
 {
@@ -26,4 +24,4 @@ namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
             return true;
         }
     }
-} 
+}

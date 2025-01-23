@@ -4,10 +4,9 @@ using Application.Features.MessageCommands.SendMessage;
 using ApplicationLayer.DTOs;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
 using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.Conversation;
-using API_Layer.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Application_Layer.Interfaces;
 
 namespace API_Layer.Hubs
 {

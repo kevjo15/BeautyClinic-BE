@@ -1,5 +1,3 @@
-using Domain_Layer.Models;
-
 namespace Application_Layer.Commands.BookingCommands.CreateBooking
 {
     public class CreateBookingResult

@@ -1,5 +1,4 @@
 using MediatR;
-using System.Collections.Generic;
 using Application_Layer.DTO_s;
 
 namespace Application_Layer.Queries.ServiceQueries
@@ -13,4 +12,4 @@ namespace Application_Layer.Queries.ServiceQueries
             Name = name;
         }
     }
-} 
+}

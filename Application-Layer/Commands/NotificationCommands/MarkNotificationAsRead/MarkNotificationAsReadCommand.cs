@@ -1,5 +1,4 @@
 using MediatR;
-using System;
 
 namespace Application_Layer.Commands.NotificationCommands
 {

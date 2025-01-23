@@ -1,14 +1,8 @@
-﻿using Application_Layer.Jwt;
+﻿using Application_Layer.Interfaces;
+using Application_Layer.Jwt;
 using AutoMapper;
-using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {

@@ -1,6 +1,4 @@
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 using Application_Layer.Commands.CategoryCommands.DeleteCategory;
 
 public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryCommand, DeleteCategoryResult>
@@ -22,4 +20,4 @@ public class DeleteCategoryCommandHandler : IRequestHandler<DeleteCategoryComman
             Message = success ? "Category deleted successfully." : "Failed to delete category."
         };
     }
-} 
+}

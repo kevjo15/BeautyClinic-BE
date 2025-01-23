@@ -1,8 +1,5 @@
 using Application_Layer.Interfaces;
-using Infrastructure_Layer.Repositories.Service;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.ServiceCommands.DeleteService
 {
@@ -21,4 +18,4 @@ namespace Application_Layer.Commands.ServiceCommands.DeleteService
             return true;
         }
     }
-} 
+}

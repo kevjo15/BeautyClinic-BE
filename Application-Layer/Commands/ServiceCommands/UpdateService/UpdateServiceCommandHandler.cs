@@ -1,9 +1,6 @@
-using Infrastructure_Layer.Repositories.Service;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using AutoMapper;
+using Application_Layer.Interfaces;
 
 namespace Application_Layer.Commands.ServiceCommands.UpdateService
 {
@@ -38,4 +35,4 @@ namespace Application_Layer.Commands.ServiceCommands.UpdateService
             }
         }
     }
-} 
+}

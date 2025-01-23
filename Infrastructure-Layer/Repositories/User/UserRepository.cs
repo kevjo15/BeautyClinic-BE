@@ -1,11 +1,7 @@
 ﻿using Domain_Layer.Models;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Application_Layer.Interfaces;
 
 namespace Infrastructure_Layer.Repositories.User
 {

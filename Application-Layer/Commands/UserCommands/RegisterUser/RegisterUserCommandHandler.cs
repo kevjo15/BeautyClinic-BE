@@ -1,12 +1,7 @@
-﻿using AutoMapper;
+﻿using Application_Layer.Interfaces;
+using AutoMapper;
 using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.RegisterUser
 {
@@ -32,7 +27,6 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
 
                 if (!result.Succeeded)
                 {
-                    // Returnera felmeddelanden från IdentityResult om registreringen misslyckades
                     return new RegisterResult(false, null, result.Errors.Select(e => e.Description).ToList());
                 }
 

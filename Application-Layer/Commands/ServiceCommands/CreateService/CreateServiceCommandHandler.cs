@@ -1,10 +1,7 @@
+using Application_Layer.Interfaces;
 using AutoMapper;
 using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.Service;
 using MediatR;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.ServiceCommands.CreateService
 {
@@ -35,4 +32,4 @@ namespace Application_Layer.Commands.ServiceCommands.CreateService
             }
         }
     }
-} 
+}

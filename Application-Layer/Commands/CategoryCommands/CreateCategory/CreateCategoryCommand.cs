@@ -1,5 +1,4 @@
 using MediatR;
-using Application_Layer.Commands.CategoryCommands.CreateCategory;
 
 namespace Application_Layer.Commands.CategoryCommands.CreateCategory
 {
@@ -12,4 +11,4 @@ namespace Application_Layer.Commands.CategoryCommands.CreateCategory
             CategoryName = categoryName;
         }
     }
-} 
+}

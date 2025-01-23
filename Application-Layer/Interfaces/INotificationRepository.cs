@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Infrastructure_Layer.Repositories.Notification
+namespace Application_Layer.Interfaces
 {
     public interface INotificationRepository
     {

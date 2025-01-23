@@ -1,37 +1,37 @@
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
-using Infrastructure_Layer.Repositories.Service;
-using Application_Layer.Commands.CategoryCommands.RemoveServiceFromCategory;
+using Application_Layer.Interfaces;
 
-public class RemoveServiceFromCategoryCommandHandler : IRequestHandler<RemoveServiceFromCategoryCommand, RemoveServiceFromCategoryResult>
+namespace Application_Layer.Commands.CategoryCommands.RemoveServiceFromCategory
 {
-    private readonly IServiceRepository _serviceRepository;
-
-    public RemoveServiceFromCategoryCommandHandler(IServiceRepository serviceRepository)
+    public class RemoveServiceFromCategoryCommandHandler : IRequestHandler<RemoveServiceFromCategoryCommand, RemoveServiceFromCategoryResult>
     {
-        _serviceRepository = serviceRepository;
-    }
+        private readonly IServiceRepository _serviceRepository;
 
-    public async Task<RemoveServiceFromCategoryResult> Handle(RemoveServiceFromCategoryCommand request, CancellationToken cancellationToken)
-    {
-        var service = await _serviceRepository.GetServiceByIdAsync(request.ServiceId);
-        if (service == null)
+        public RemoveServiceFromCategoryCommandHandler(IServiceRepository serviceRepository)
         {
-            return new RemoveServiceFromCategoryResult
-            {
-                Success = false,
-                Message = "Service not found."
-            };
+            _serviceRepository = serviceRepository;
         }
 
-        service.CategoryId = null; // Remove the category link
-        var success = await _serviceRepository.UpdateServiceAsync(service);
-
-        return new RemoveServiceFromCategoryResult
+        public async Task<RemoveServiceFromCategoryResult> Handle(RemoveServiceFromCategoryCommand request, CancellationToken cancellationToken)
         {
-            Success = success,
-            Message = success ? "Service removed from category successfully." : "Failed to remove service from category."
-        };
+            var service = await _serviceRepository.GetServiceByIdAsync(request.ServiceId);
+            if (service == null)
+            {
+                return new RemoveServiceFromCategoryResult
+                {
+                    Success = false,
+                    Message = "Service not found."
+                };
+            }
+
+            service.CategoryId = null; // Remove the category link
+            var success = await _serviceRepository.UpdateServiceAsync(service);
+
+            return new RemoveServiceFromCategoryResult
+            {
+                Success = success,
+                Message = success ? "Service removed from category successfully." : "Failed to remove service from category."
+            };
+        }
     }
-} 
+}
