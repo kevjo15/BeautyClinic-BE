@@ -162,6 +162,50 @@
           <div id="bookingError" class="error"></div>
         </div>
 
+        <!-- Sektion för avbokning & uppdatering -->
+        <div class="test-section">
+          <h4>Test Booking Cancellation & Update</h4>
+          <!-- Avbokning -->
+          <div class="input-group">
+            <label>Booking ID:</label>
+            <input type="text" id="bookingId" placeholder="Enter Booking ID" />
+          </div>
+          <button onclick="cancelBooking()">Cancel Booking</button>
+
+          <!-- Uppdatering -->
+          <div class="input-group">
+            <label>Select Service:</label>
+            <select id="serviceIdUpdate" onchange="loadServiceDetailsUpdate()">
+              <option value="">Select a service</option>
+            </select>
+            <div id="serviceDetailsUpdate"></div>
+          </div>
+          <div class="input-group">
+            <label>Select Date and Time:</label>
+            <input
+              type="datetime-local"
+              id="bookingDateUpdate"
+              onchange="loadAvailableSlotsUpdate()"
+              disabled
+            />
+          </div>
+          <div class="input-group">
+            <label>Available Time Slots:</label>
+            <select id="timeSlotsUpdate" style="display: none">
+              <option value="">Select a time slot</option>
+            </select>
+          </div>
+          <!-- Här är den uppdaterade knappen för updateBooking -->
+          <button
+            onclick="updateBooking()"
+            id="bookButtonUpdate"
+            style="display: none"
+          >
+            Update Booking
+          </button>
+          <div id="bookingErrorUpdate" class="error"></div>
+        </div>
+
         <!-- Chat section -->
         <div class="test-section">
           <h4>Test Chat</h4>
@@ -491,20 +535,33 @@
           }
 
           services = await response.json(); // Store services globally
-          console.log("Loaded services:", services); // Debug log
+          console.log("Loaded services:", services);
 
-          const select = document.getElementById("serviceId");
-          select.innerHTML = '<option value="">Select a service</option>';
+          // Hämta båda select-elementen
+          const selectCreate = document.getElementById("serviceId");
+          const selectUpdate = document.getElementById("serviceIdUpdate");
 
-          services.forEach((service) => {
-            console.log(`Service ID: ${service.id}, Name: ${service.name}`); // Debug log
-            const option = document.createElement("option");
-            option.value = service.id; // GUID as the value
-            option.textContent = service.name; // Display name in dropdown
-            select.appendChild(option);
-          });
+          // Funktion för att fylla på en select med tjänster
+          const populateSelect = (selectElement) => {
+            selectElement.innerHTML =
+              '<option value="">Select a service</option>';
+            services.forEach((service) => {
+              const option = document.createElement("option");
+              option.value = service.id; // GUID som värde
+              option.textContent = service.name; // Namnet som visas
+              selectElement.appendChild(option);
+            });
+          };
+
+          if (selectCreate) {
+            populateSelect(selectCreate);
+          }
+          if (selectUpdate) {
+            populateSelect(selectUpdate);
+          }
         } catch (error) {
           console.error("Error loading services:", error);
+          // Visa felmeddelande på något av felen – här använder vi den första
           document.getElementById("bookingError").textContent = error.message;
         }
       }
@@ -553,6 +610,42 @@
   `;
 
         document.getElementById("bookingDate").disabled = false;
+      }
+
+      function loadServiceDetailsUpdate() {
+        const serviceId = document.getElementById("serviceIdUpdate").value;
+        console.log("Selected service ID for update:", serviceId);
+
+        if (!serviceId) {
+          document.getElementById("serviceDetailsUpdate").innerHTML = "";
+          document.getElementById("bookingDateUpdate").disabled = true;
+          return;
+        }
+
+        selectedService = services.find(
+          (s) => s.id.toLowerCase() === serviceId.toLowerCase()
+        );
+
+        if (!selectedService) {
+          document.getElementById("serviceDetailsUpdate").innerHTML = `
+      <div style="color: red; margin-top: 5px;">
+        Service not found
+      </div>
+    `;
+          document.getElementById("bookingDateUpdate").disabled = true;
+          return;
+        }
+
+        const durationMinutes = parseDuration(selectedService.duration);
+        document.getElementById("serviceDetailsUpdate").innerHTML = `
+    <div style="margin-top: 5px;">
+      <strong>${selectedService.name}</strong><br>
+      Duration: ${durationMinutes} minutes<br>
+      Price: ${selectedService.price} kr<br>
+      Description: ${selectedService.description}
+    </div>
+  `;
+        document.getElementById("bookingDateUpdate").disabled = false;
       }
 
       async function loadAvailableSlots() {
@@ -610,6 +703,70 @@
         } catch (error) {
           console.error("Error loading slots:", error);
           document.getElementById("bookingError").textContent = error.message;
+        }
+      }
+
+      async function loadAvailableSlotsUpdate() {
+        // Hämta värden från update‑elementen
+        const serviceId = document.getElementById("serviceIdUpdate").value;
+        const dateValue = document.getElementById("bookingDateUpdate").value;
+
+        // Kontrollera att både service och datum är ifyllda
+        if (!serviceId || !dateValue) return;
+
+        const date = new Date(dateValue);
+
+        try {
+          const response = await fetch(
+            `/api/Booking/available-time-slots?serviceId=${serviceId}&date=${date.toISOString()}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to load available slots");
+          }
+
+          const timeSlotsData = await response.json();
+          console.log("Available time slots for update:", timeSlotsData);
+
+          const select = document.getElementById("timeSlotsUpdate");
+          select.innerHTML = '<option value="">Select a time slot</option>';
+
+          timeSlotsData.forEach((day) => {
+            day.availableSlots.forEach((slot) => {
+              if (slot.isAvailable) {
+                const option = document.createElement("option");
+                option.value = JSON.stringify({
+                  startTime: slot.startTime,
+                  endTime: slot.endTime,
+                });
+                const start = new Date(slot.startTime).toLocaleTimeString(
+                  "sv-SE",
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                );
+                const end = new Date(slot.endTime).toLocaleTimeString("sv-SE", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                option.textContent = `${start} - ${end}`;
+                select.appendChild(option);
+              }
+            });
+          });
+
+          select.style.display = "block";
+          document.getElementById("bookButtonUpdate").style.display = "block";
+        } catch (error) {
+          console.error("Error loading available slots (update):", error);
+          document.getElementById("bookingErrorUpdate").textContent =
+            error.message;
         }
       }
 
@@ -675,6 +832,78 @@
           console.error("Error creating booking:", error);
           document.getElementById("bookingError").textContent = error.message;
           document.getElementById("bookingError").style.color = "red";
+        }
+      }
+
+      async function cancelBooking() {
+        const bookingId = document.getElementById("bookingId").value;
+        if (!bookingId) {
+          alert("Please enter a booking ID");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/Booking/CancelBooking/${bookingId}`,
+            {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${accessToken}` },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to cancel booking");
+          }
+
+          alert("Booking cancelled successfully. Check notifications.");
+        } catch (error) {
+          console.error("Error cancelling booking:", error);
+          alert("Error cancelling booking: " + error.message);
+        }
+      }
+
+      async function updateBooking() {
+        const bookingId = document.getElementById("bookingId").value;
+        const serviceId = document.getElementById("serviceIdUpdate").value;
+        const selectedSlotValue =
+          document.getElementById("timeSlotsUpdate").value;
+
+        if (!bookingId || !serviceId || !selectedSlotValue) {
+          alert("Please fill all fields.");
+          return;
+        }
+
+        try {
+          const slot = JSON.parse(selectedSlotValue);
+          // Skapa payloaden utan "id", då id:t ska vara en del av URL:en
+          const bookingData = {
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            serviceId: serviceId,
+          };
+
+          // Använd bookingId i URL:en
+          const response = await fetch(
+            `/api/Booking/UpdateBookingById/${bookingId}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+              body: JSON.stringify(bookingData),
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(errorData || "Failed to update booking.");
+          }
+
+          alert("Booking updated successfully.");
+        } catch (error) {
+          console.error("Error updating booking:", error);
+          alert("Error updating booking: " + error.message);
         }
       }
 

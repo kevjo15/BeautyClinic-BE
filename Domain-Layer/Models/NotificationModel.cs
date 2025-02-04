@@ -14,11 +14,12 @@ public class NotificationModel
     public BookingModel? Booking { get; set; }
 }
 
-// Enum för att definiera olika typer av notifikationer
+
 public enum NotificationType
 {
-    BookingReminder,    // För påminnelser om bokningar
-    BookingConfirmation,// För bekräftelse av ny bokning
-    BookingCancellation,// För avbokningar
-    MessageReceived     // För nya chattmeddelanden
+    BookingReminder,
+    BookingConfirmation,
+    BookingCancellation,
+    BookingUpdated,
+    MessageReceived
 }
