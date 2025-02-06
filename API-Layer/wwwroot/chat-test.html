@@ -60,6 +60,65 @@
         border-radius: 4px;
       }
 
+      .flex-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .flex-wrap button {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+
+      .flex-wrap button:hover {
+        background-color: #0056b3;
+      }
+
+      .flex-wrap button.active {
+        background-color: #28a745;
+      }
+
+      .time-slots-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #222;
+      }
+
+      .time-slots-grid button {
+        padding: 10px 12px;
+        border: none;
+        border-radius: 6px;
+        background-color: #007bff;
+        color: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+
+      .time-slots-grid button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+      }
+
+      .time-slots-grid button.active {
+        background-color: #28a745;
+      }
+
+      .time-slots-grid button:focus {
+        outline: 2px solid #ffd700;
+      }
+
       button {
         padding: 8px 16px;
         background-color: #007bff;
@@ -138,19 +197,17 @@
             <div id="serviceDetails"></div>
           </div>
           <div class="input-group">
-            <label>Select Date and Time:</label>
+            <label>Select Date:</label>
             <input
-              type="datetime-local"
+              type="date"
               id="bookingDate"
               onchange="loadAvailableSlots()"
               disabled
             />
           </div>
-          <div class="input-group">
+          <div id="timeSlotsContainer" style="display: none; margin-top: 10px">
             <label>Available Time Slots:</label>
-            <select id="timeSlots" style="display: none">
-              <option value="">Select a time slot</option>
-            </select>
+            <div id="timeSlots" class="flex-wrap"></div>
           </div>
           <button
             onclick="createTestBooking()"
@@ -189,11 +246,9 @@
               disabled
             />
           </div>
-          <div class="input-group">
+          <div id="timeSlotsContainer" style="display: none; margin-top: 10px">
             <label>Available Time Slots:</label>
-            <select id="timeSlotsUpdate" style="display: none">
-              <option value="">Select a time slot</option>
-            </select>
+            <div id="timeSlots" class="time-slots-grid"></div>
           </div>
           <!-- Här är den uppdaterade knappen för updateBooking -->
           <button
@@ -650,12 +705,13 @@
 
       async function loadAvailableSlots() {
         const serviceId = document.getElementById("serviceId").value;
-        const date = new Date(document.getElementById("bookingDate").value);
+        const date = document.getElementById("bookingDate").value;
+
         if (!serviceId || !date) return;
 
         try {
           const response = await fetch(
-            `/api/Booking/available-time-slots?serviceId=${serviceId}&date=${date.toISOString()}`,
+            `/api/Booking/available-time-slots?serviceId=${serviceId}&date=${date}`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -668,42 +724,43 @@
           }
 
           const timeSlotsData = await response.json();
-          console.log("Available time slots:", timeSlotsData);
-
-          const select = document.getElementById("timeSlots");
-          select.innerHTML = '<option value="">Select a time slot</option>';
+          const timeSlotsContainer = document.getElementById("timeSlots");
+          timeSlotsContainer.innerHTML = ""; // Rensa tidigare slots
 
           timeSlotsData.forEach((day) => {
             day.availableSlots.forEach((slot) => {
               if (slot.isAvailable) {
-                const option = document.createElement("option");
-                option.value = JSON.stringify({
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                });
-                const start = new Date(slot.startTime).toLocaleTimeString(
-                  "sv-SE",
-                  {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }
-                );
-                const end = new Date(slot.endTime).toLocaleTimeString("sv-SE", {
+                const button = document.createElement("button");
+                button.textContent = `${new Date(
+                  slot.startTime
+                ).toLocaleTimeString("sv-SE", {
                   hour: "2-digit",
                   minute: "2-digit",
-                });
-                option.textContent = `${start} - ${end}`;
-                select.appendChild(option);
+                })} - ${new Date(slot.endTime).toLocaleTimeString("sv-SE", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}`;
+                button.onclick = () => selectTimeSlot(slot);
+                timeSlotsContainer.appendChild(button);
               }
             });
           });
 
-          select.style.display = "block";
-          document.getElementById("bookButton").style.display = "block";
+          document.getElementById("timeSlotsContainer").style.display = "block";
         } catch (error) {
           console.error("Error loading slots:", error);
           document.getElementById("bookingError").textContent = error.message;
         }
+      }
+
+      let selectedSlot = null;
+
+      function selectTimeSlot(slot) {
+        selectedSlot = slot;
+        const buttons = document.querySelectorAll("#timeSlots button");
+        buttons.forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+        document.getElementById("bookButton").style.display = "block";
       }
 
       async function loadAvailableSlotsUpdate() {
@@ -773,29 +830,17 @@
       async function createTestBooking() {
         try {
           const serviceId = document.getElementById("serviceId").value;
-          const selectedSlot = JSON.parse(
-            document.getElementById("timeSlots").value
-          );
 
           if (!selectedSlot) {
             throw new Error("Please select a time slot");
           }
 
-          // Kontrollera currentUserId
-          console.log("Current User ID:", currentUserId);
-
-          // Om currentUserId är null, hårdkoda för testning
-          const userId =
-            currentUserId || "ab98f82c-101d-43b3-8b1e-55f6d3dcdd7a";
-
           const bookingData = {
-            userId: userId,
+            userId: currentUserId || "test-user-id", // Placeholder för test
             serviceId: serviceId,
             startTime: selectedSlot.startTime,
             endTime: selectedSlot.endTime,
           };
-
-          console.log("Creating booking:", bookingData);
 
           const response = await fetch("/api/Booking/CreateBooking", {
             method: "POST",
@@ -807,31 +852,13 @@
           });
 
           if (!response.ok) {
-            const errorData = await response.text();
-            console.error("Server error response:", errorData);
-
-            let errorMessage = "Failed to create booking.";
-            try {
-              const errorJson = JSON.parse(errorData);
-              if (errorJson.message) {
-                errorMessage = errorJson.message;
-              }
-            } catch (e) {
-              console.warn("Error parsing error response as JSON:", e);
-            }
-
-            throw new Error(errorMessage);
+            throw new Error("Failed to create booking");
           }
 
-          const result = await response.json();
-          console.log("Booking created:", result);
-          document.getElementById("bookingError").textContent =
-            "Booking created successfully! Check notifications.";
-          document.getElementById("bookingError").style.color = "green";
+          alert("Booking created successfully!");
         } catch (error) {
           console.error("Error creating booking:", error);
           document.getElementById("bookingError").textContent = error.message;
-          document.getElementById("bookingError").style.color = "red";
         }
       }
 
