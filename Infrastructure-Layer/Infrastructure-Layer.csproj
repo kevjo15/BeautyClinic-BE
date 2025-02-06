@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain-Layer\Domain-Layer.csproj" />
+     <ProjectReference Include="..\Application-Layer\Application-Layer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

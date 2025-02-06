@@ -1,15 +1,8 @@
-﻿using Application_Layer.Jwt;
+﻿﻿using Application_Layer.Jwt;
 using Application_Layer.PipelineBehaviour;
 using FluentValidation;
 using MediatR;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer
 {
@@ -28,7 +21,6 @@ namespace Application_Layer
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
 
             return services;

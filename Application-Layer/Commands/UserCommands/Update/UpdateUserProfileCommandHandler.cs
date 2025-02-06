@@ -1,12 +1,7 @@
 ﻿using Application_Layer.DTO_s;
+using Application_Layer.Interfaces;
 using AutoMapper;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.Update
 {
@@ -14,7 +9,7 @@ namespace Application_Layer.Commands.UserCommands.Update
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        public UpdateUserProfileCommandHandler(IUserRepository userRepository, IMapper mapper) 
+        public UpdateUserProfileCommandHandler(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -22,11 +17,11 @@ namespace Application_Layer.Commands.UserCommands.Update
 
         public async Task<UpdateUserProfileResult> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
         {
-           var user = await _userRepository.FindByIdAsync(request.UserId);
+            var user = await _userRepository.FindByIdAsync(request.UserId);
 
             if (user == null)
             {
-                return new UpdateUserProfileResult(false, null, new List<string> {"User was not found!"});
+                return new UpdateUserProfileResult(false, null, new List<string> { "User was not found!" });
             }
 
             _mapper.Map(request.UpdatedProfileDTO, user);

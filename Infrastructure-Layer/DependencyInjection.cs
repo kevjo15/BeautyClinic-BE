@@ -1,5 +1,6 @@
-﻿using Infrastructure_Layer.Database;
+﻿﻿using Infrastructure_Layer.Database;
 using Infrastructure_Layer.Repositories.User;
+using Infrastructure_Layer.DataSeeder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,13 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Infrastructure_Layer.Repositories.Service;
+using Application_Layer.Interfaces;
+using Infrastructure_Layer.Repositories;
+using Infrastructure_Layer.Repositories.Conversation;
+using Infrastructure_Layer.Repositories.Message;
+using Infrastructure_Layer.Repositories.Notification;
+
 
 namespace Infrastructure_Layer
 {
@@ -20,10 +28,25 @@ namespace Infrastructure_Layer
 
             services.AddDbContext<ElsaBeautyDbContext>(options =>
             options.UseSqlServer(connectionString));
-
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IServiceRepository, ServiceRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<IConversationRepository, ConversationRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<DataSeeder.DataSeeder>();
 
             return services;
+        }
+
+        public static async Task SeedDataAsync(this IServiceProvider serviceProvider)
+        {
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder.DataSeeder>();
+                await seeder.SeedAsync();
+            }
         }
     }
 }

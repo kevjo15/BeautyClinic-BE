@@ -1,6 +1,9 @@
 ﻿using Application_Layer.Commands.UserCommands.Login;
+using Application_Layer.Commands.UserCommands.RefreshToken;
 using Application_Layer.Commands.UserCommands.RegisterUser;
+using Application_Layer.Commands.UserCommands.RevokeRefreshToken;
 using Application_Layer.Commands.UserCommands.Update;
+using Application_Layer.Commands.UserCommands.UpdatePassword;
 using Application_Layer.DTO_s;
 using Application_Layer.Queries.UserQueries.GetUserById;
 using Domain_Layer.Models;
@@ -90,6 +93,49 @@ namespace API_Layer.Controllers
         public IActionResult AdminOnly()
         {
             return Ok("This is an Admin-only area.");
+        }
+
+        [HttpPost("refreshAccessToken")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
+        {
+            var command = new RefreshTokenCommand(request.RefreshToken);
+            var result = await _mediator.Send(command);
+
+            if (!result.Successful)
+            {
+                return Unauthorized(result.Error);
+            }
+
+            return Ok(new { AccessToken = result.AccessToken });
+        }
+
+        [HttpPost("revokeRefreshtoken")]
+        public async Task<IActionResult> RevokeRefreshToken()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var command = new RevokeRefreshTokenCommand(userId);
+            var result = await _mediator.Send(command);
+
+            if (!result) return BadRequest("Failed to revoke refresh token.");
+
+            return Ok("Refresh token revoked successfully.");
+        }
+
+        [Authorize]
+        [HttpPost("me/update-password")]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDTO updatePasswordDTO)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var command = new UpdatePasswordCommand(userId, updatePasswordDTO);
+            var result = await _mediator.Send(command);
+
+            if (!result) return BadRequest("Failed to update password.");
+
+            return Ok("Password updated successfully.");
         }
 
         //[HttpGet("test-auth")]

@@ -1,10 +1,5 @@
 ﻿using Application_Layer.Validators.ValidationExtensions;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Commands.UserCommands.Update
 {
@@ -16,7 +11,7 @@ namespace Application_Layer.Commands.UserCommands.Update
                 .MustBeValidName();
 
             RuleFor(x => x.UpdatedProfileDTO.LastName)
-                .MustBeValidName(); 
+                .MustBeValidName();
 
             RuleFor(x => x.UpdatedProfileDTO.UserName)
                 .MustBeValidUserName();

@@ -9,18 +9,21 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
+using API_Layer.Hubs;
+using Application_Layer.Interfaces;
+using API_Layer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// L‰gg till tj‰nster frÂn Application_Layer
+// LÔøΩgg till tjÔøΩnster frÔøΩn Application_Layer
 builder.Services.AddApplicationLayer();
 
-// L‰gg till tj‰nster frÂn Infrastructure_Layer
+// LÔøΩgg till tjÔøΩnster frÔøΩn Infrastructure_Layer
 builder.Services.AddInfrastructureLayer(builder.Configuration);
 
-// L‰s in JWT-inst‰llningar frÂn appsettings.json
+// LÔøΩs in JWT-instÔøΩllningar frÔøΩn appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
@@ -48,7 +51,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// L‰gg till auktorisering med en AdminPolicy
+// LÔøΩgg till auktorisering med en AdminPolicy
 builder.Services.AddAuthorization();
 
 // Konfigurera Identity
@@ -61,6 +64,46 @@ builder.Services.AddDefaultIdentity<UserModel>(options => options.SignIn.Require
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
+// Add SignalR services
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
+});
+
+// Add CORS policy for SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("SignalRPolicy", policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowed(_ => true); // Till√•t alla origins under utveckling
+    });
+});
+
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+
+// Konfigurera JWT f√∂r SignalR
+builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessToken) && 
+                (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub")))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -95,6 +138,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Seed data
+await app.Services.SeedDataAsync();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -105,10 +151,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Enable serving static files
+app.UseStaticFiles();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
+// Use CORS before routing
+app.UseCors("SignalRPolicy");
+
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

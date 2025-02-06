@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure-Layer\Infrastructure-Layer.csproj" />
+    <ProjectReference Include="..\Domain-Layer\Domain-Layer.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,13 +1,8 @@
-﻿using Application_Layer.Jwt;
+﻿using Application_Layer.Interfaces;
+using Application_Layer.Jwt;
 using AutoMapper;
-using Domain_Layer.Models;
-using Infrastructure_Layer.Repositories.User;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {
@@ -28,8 +23,6 @@ namespace Application_Layer.Commands.UserCommands.Login
         {
             try
             {
-                var user = _mapper.Map<UserModel>(request.LoginUserDTO);
-
                 var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
                 if (existingUser == null)
                 {
@@ -43,17 +36,34 @@ namespace Application_Layer.Commands.UserCommands.Login
                 }
 
                 var token = await _jwtTokenGenerator.GenerateToken(existingUser);
-                return CreateLoginResult(true, null, token);
+
+                // Generate and store refresh token
+                var refreshToken = GenerateRefreshToken();
+                existingUser.RefreshToken = refreshToken;
+                existingUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Example expiry time
+                await _userRepository.UpdateUserAsync(existingUser);
+
+                return CreateLoginResult(true, null, token, refreshToken);
             }
             catch (Exception ex)
             {
                 return CreateLoginResult(false, $"An unexpected error occurred: {ex.Message}");
             }
-
         }
-        private LoginResult CreateLoginResult(bool successful, string? error, string? token = null)
+
+        private string GenerateRefreshToken()
         {
-            return new LoginResult { Successful = successful, Error = error, Token = token };
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        private LoginResult CreateLoginResult(bool successful, string? error, string? token = null, string? refreshToken = null)
+        {
+            return new LoginResult { Successful = successful, Error = error, Token = token, RefreshToken = refreshToken };
         }
     }
 }
