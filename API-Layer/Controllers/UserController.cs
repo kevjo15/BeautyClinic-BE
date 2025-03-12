@@ -96,9 +96,9 @@ namespace API_Layer.Controllers
         }
 
         [HttpPost("refreshAccessToken")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequestDTO request)
         {
-            var command = new RefreshTokenCommand(request.RefreshToken);
+            var command = new RefreshAccessTokenCommand(request.AccessToken);
             var result = await _mediator.Send(command);
 
             if (!result.Successful)
@@ -137,6 +137,19 @@ namespace API_Layer.Controllers
 
             return Ok("Password updated successfully.");
         }
+
+        [HttpGet("me")]
+        public IActionResult GetUser()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userId == null) return Unauthorized();
+
+            return Ok(new { userId, email, role });
+        }
+
 
         //[HttpGet("test-auth")]
         //public IActionResult TestAuth()

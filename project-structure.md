@@ -1,0 +1,202 @@
+# ElsaBeauty-BE Project Structure
+
+## API-Layer
+
+- **Controllers/**
+  - BookingController.cs
+  - CategoryController.cs
+  - ConversationController.cs
+  - NotificationController.cs
+  - ServiceController.cs
+  - UserController.cs
+- **Hubs/**
+  - ChatHub.cs
+  - NotificationHub.cs
+- **Services/**
+  - SignalNotificationService.cs
+- **wwwroot/**
+  - chat-test.html
+- API-Layer.csproj
+- API-Layer.http
+- appsettings.Development.json
+- appsettings.json
+- Program.cs
+
+## Application-Layer
+
+- **AutoMapper/**
+  - MappingProfiles.cs
+- **Commands/**
+  - **BookingCommands/**
+    - **CancelBooking/**
+      - CancelBookingCommand.cs
+    - **CreateBooking/**
+    - **UpdateBooking/**
+  - **CategoryCommands/**
+    - **AddServiceToCategory/**
+    - **CreateCategory/**
+    - **DeleteCategory/**
+    - **RemoveServiceFromCategory/**
+    - **UpdateCategory/**
+  - **ConversationCommands/**
+    - **CreateConversation/**
+  - **MessageCommands/**
+    - **SendMessage/**
+  - **NotificationCommands/**
+    - **CreateNotification/**
+    - **DeleteNotification/**
+    - **MarkNotificationAsRead/**
+  - **ServiceCommands/**
+    - **CreateService/**
+    - **DeleteService/**
+    - **UpdateService/**
+  - **UserCommands/**
+    - **LoginUser/**
+    - **RefreshToken/**
+    - **RegisterUser/**
+    - **RevokeRefreshToken/**
+    - **Update/**
+    - **UpdatePassword/**
+- **DTOs/**
+  - AvailableTimeSlotDTO.cs
+  - BookingDTO.cs
+  - CategoryCreateDTO.cs
+  - CategoryDTO.cs
+  - CategoryNameDTO.cs
+  - CreateBookingDTO.cs
+  - GetUserByIdResponseDTO.cs
+  - LoginUserDTO.cs
+  - NotificationDTO.cs
+  - RefreshAccessTokenRequestDTO.cs
+  - RegisterUserDTO.cs
+  - SendMessageDTO.cs
+  - ServiceDTO.cs
+  - UpdateBookingDTO.cs
+  - UpdatePasswordDTO.cs
+  - UpdateUserProfileDTO.cs
+- **Interfaces/**
+  - IBookingRepository.cs
+  - ICategoryRepository.cs
+  - IConversationRepository.cs
+  - IMessageRepository.cs
+  - INotificationRepository.cs
+  - INotificationService.cs
+  - IServiceRepository.cs
+  - IUserRepository.cs
+- **Jwt/**
+  - IJwtTokenGenerator.cs
+  - JwtTokenGenerator.cs
+- **PipelineBehaviour/**
+  - ValidationBehaviour.cs
+- **Queries/**
+  - **BookingQueries/**
+    - **GetAllBookings/**
+    - **GetAvailableTimeSlots/**
+    - **GetBookingById/**
+    - **GetBookingsByUserId/**
+  - **CategoryQueries/**
+    - GetAllCategoriesQuery.cs
+    - GetAllCategoriesQueryHandler.cs
+  - **ConversationsQueries/**
+    - **GetAllConversations/**
+    - **GetConversationById/**
+  - **MessagesQueries/**
+    - **GetMessagesForConversation/**
+  - **NotificationQueries/**
+    - GetUserNotificationsQuery.cs
+    - GetUserNotificationsQueryHandler.cs
+  - **ServiceQueries/**
+    - **GetAllServices/**
+    - **GetServiceByCategory/**
+    - **GetServiceByName/**
+  - **UserQueries/**
+    - **GetUserById/**
+- **Validators/**
+  - **ValidationExtensions/**
+    - BookingCommandValidationExtensions.cs
+    - CategoryNameValidationExtension.cs
+    - DescriptionValidationExtension.cs
+    - DurationValidationExtension.cs
+    - EmailValidationExtension.cs
+    - GuidIdValidationExtension.cs
+    - NameValidationExtension.cs
+    - PasswordValidationExtension.cs
+    - PriceValidationExtension.cs
+    - ServiceIdValidationExtension.cs
+    - ServiceNameValidationExtension.cs
+    - UserNameValidationExtension.cs
+- Application-Layer.csproj
+- DependencyInjection.cs
+
+## Domain-Layer
+
+- **Models/**
+  - BookingModel.cs
+  - CategoryModel.cs
+  - ConversationModel.cs
+  - MessageModel.cs
+  - NotificationModel.cs
+  - ServiceModel.cs
+  - UserModel.cs
+- **Requirements/**
+  - Instructions.md
+- Domain-Layer.csproj
+
+## Infrastructure-Layer
+
+- **Database/**
+  - ElsaBeautyDbContext.cs
+- **DataSeeder/**
+  - DataSeeder.cs
+- **Migrations/**
+  - 20241215212030_AddRefreshTokenToUser.cs
+  - 20241215212030_AddRefreshTokenToUser.Designer.cs
+  - 20241217133409_YourMigrationName.cs
+  - 20241217133409_YourMigrationName.Designer.cs
+  - 20241217201710_UpdateCategoryForeignKey.cs
+  - 20241217201710_UpdateCategoryForeignKey.Designer.cs
+  - 20241217204518_ADDEDMOREDATASEEDER.cs
+  - 20241217204518_ADDEDMOREDATASEEDER.Designer.cs
+  - 20241217212405_Nullable.cs
+  - 20241217212405_Nullable.Designer.cs
+  - 20241221172007_AddedBookingModel.cs
+  - 20241221172007_AddedBookingModel.Designer.cs
+  - 20241222182920_AddedConversationAndMessagesModel.cs
+  - 20241222182920_AddedConversationAndMessagesModel.Designer.cs
+  - 20250103031721_AddedNotificationModel.cs
+  - 20250103031721_AddedNotificationModel.Designer.cs
+  - ElsaBeautyDbContextModelSnapshot.cs
+- **Repositories/**
+  - **Booking/**
+    - BookingRepository.cs
+  - **Category/**
+    - CategoryRepository.cs
+  - **Conversation/**
+    - ConversationRepository.cs
+  - **Message/**
+    - MessageRepository.cs
+  - **Notification/**
+    - NotificationRepository.cs
+  - **Service/**
+    - ServiceRepository.cs
+  - **User/**
+    - UserRepository.cs
+- Infrastructure-Layer.csproj
+- DependencyInjection.cs
+
+## Test-Layer
+
+- **UserTests/**
+  - **UserIntegrationTests/**
+    - UserControllerIntegrationLoginTests.cs
+    - UserControllerIntegrationRegisterTests.cs
+  - **UserUnitTests/**
+    - LoginCommandHandlerTests.cs
+    - RegisterUserCommandHandlerTests.cs
+- Test-Layer.csproj
+
+## Root Files
+
+- .gitignore
+- ElsaBeauty-BE.sln
+- README.md
