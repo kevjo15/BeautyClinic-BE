@@ -18,6 +18,7 @@ namespace Application_Layer.AutoMapper
             CreateMap<UserModel, GetUserByIdResponseDTO>();
             CreateMap<ServiceModel, ServiceDTO>().ReverseMap();
             CreateMap<CategoryModel, CategoryDTO>().ReverseMap();
+            CreateMap<CategoryModel, CategoryWithServicesDTO>();
             CreateMap<ServiceDTO, ServiceModel>().ReverseMap();
             CreateMap<BookingModel, BookingDTO>().ReverseMap();
             CreateMap<CreateBookingDTO, BookingModel>().ReverseMap();
