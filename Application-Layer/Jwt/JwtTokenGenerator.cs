@@ -33,10 +33,13 @@ namespace Application_Layer.Jwt
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("RefreshTokenExpiryTime", user.RefreshTokenExpiryTime?.ToString("o") ?? string.Empty)
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        if (user.RefreshTokenExpiryTime != null)
+        {
+            claims.Add(new Claim("RefreshTokenExpiryTime", user.RefreshTokenExpiryTime.Value.ToString("o")));
+        }
             // Hämta rollerna för användaren från UserManager
             var roles = await _userManager.GetRolesAsync(user);
 
