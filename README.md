@@ -87,20 +87,32 @@ Built using Clean Architecture with 4 distinct layers:
    - Visual Studio 2022 or VS Code
    ```
 
-2. **Clone the Repository**
+2. **Configuration Setup**
+
+   ```bash
+   # Copy the example configuration file
+   cp API-Layer/appsettings.example.json API-Layer/appsettings.json
+
+   # Edit appsettings.json with your settings:
+   # - Set your database connection
+   # - Generate a secure JWT secret
+   # - Configure other settings as needed
+   ```
+
+3. **Clone the Repository**
 
    ```bash
    git clone https://github.com/yourusername/BeautyHub-API.git
    ```
 
-3. **Database Setup**
+4. **Database Setup**
 
    ```bash
    cd BeautyHub-API
    dotnet ef database update
    ```
 
-4. **Run the Application**
+5. **Run the Application**
    ```bash
    dotnet run --project API-Layer
    ```
