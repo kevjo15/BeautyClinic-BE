@@ -72,7 +72,7 @@ Built using Clean Architecture with 4 distinct layers:
 
 ## 🧪 Testing
 
-- Unit tests using xUnit
+- Unit tests using nUnit and FakeItEasy for mocking
 - Integration tests for API endpoints
 - Repository pattern tests
 - Command/Query handler tests
