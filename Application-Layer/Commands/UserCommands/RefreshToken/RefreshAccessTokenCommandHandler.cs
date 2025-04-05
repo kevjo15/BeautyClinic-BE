@@ -91,10 +91,22 @@ namespace Application_Layer.Commands.UserCommands.RefreshToken
                 var newAccessToken = await _jwtTokenGenerator.GenerateToken(user);
                 return new RefreshTokenResult(true, null, newAccessToken);
             }
-            catch (Exception ex)
+            catch (SecurityTokenExpiredException ex)
             {
-                return new RefreshTokenResult(false, "Fel vid tokenvalidering: " + ex.Message);
+                return new RefreshTokenResult(false, "Token has expired: " + ex.Message);
             }
+            catch (SecurityTokenInvalidSignatureException ex)
+            {
+               return new RefreshTokenResult(false, "Invalid token signature: " + ex.Message);
+           }
+           catch (SecurityTokenValidationException ex)
+           {
+               return new RefreshTokenResult(false, "Token validation failed: " + ex.Message);
+           }
+           catch (Exception ex)
+           {
+               return new RefreshTokenResult(false, "An unexpected error occurred: " + ex.Message);
+           }
         }
     }
 }
