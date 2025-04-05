@@ -35,13 +35,14 @@ namespace Application_Layer.Commands.UserCommands.Login
                     return CreateLoginResult(false, "Felaktigt lösenord.");
                 }
 
-                var token = await _jwtTokenGenerator.GenerateToken(existingUser);
-
                 // Generate and store refresh token
                 var refreshToken = GenerateRefreshToken();
                 existingUser.RefreshToken = refreshToken;
                 existingUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Example expiry time
+
                 await _userRepository.UpdateUserAsync(existingUser);
+
+                var token = await _jwtTokenGenerator.GenerateToken(existingUser);
 
                 return CreateLoginResult(true, null, token, refreshToken);
             }

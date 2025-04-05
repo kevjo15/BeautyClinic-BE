@@ -5,7 +5,9 @@ using Application_Layer.Commands.UserCommands.RevokeRefreshToken;
 using Application_Layer.Commands.UserCommands.Update;
 using Application_Layer.Commands.UserCommands.UpdatePassword;
 using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using Application_Layer.Queries.UserQueries.GetUserById;
+using Application_Layer.Queries.UserQueries.GetUserName;
 using Domain_Layer.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -96,9 +98,9 @@ namespace API_Layer.Controllers
         }
 
         [HttpPost("refreshAccessToken")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDTO request)
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequestDTO request)
         {
-            var command = new RefreshTokenCommand(request.RefreshToken);
+            var command = new RefreshAccessTokenCommand(request.AccessToken);
             var result = await _mediator.Send(command);
 
             if (!result.Successful)
@@ -137,6 +139,32 @@ namespace API_Layer.Controllers
 
             return Ok("Password updated successfully.");
         }
+
+        [HttpGet("me")]
+        public IActionResult GetUser()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userId == null) return Unauthorized();
+
+            return Ok(new { userId, email, role });
+        }
+
+        [HttpGet("me/name")]
+        [Authorize]
+        public async Task<IActionResult> GetUserName()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            var userNameDto = await _mediator.Send(new GetUserNameQuery(userId));
+            if (userNameDto == null) return NotFound($"User with ID {userId} was not found.");
+
+            return Ok(userNameDto);
+        }
+
 
         //[HttpGet("test-auth")]
         //public IActionResult TestAuth()

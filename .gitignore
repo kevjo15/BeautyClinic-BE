@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Custom ignores
+chat-test.html
+appsettings.json
+appsettings.*.json
+project-structure.md

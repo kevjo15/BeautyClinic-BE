@@ -13,6 +13,7 @@ using Application_Layer.Queries.CategoryQueries;
 using Application_Layer.Commands.CategoryCommands.CreateCategory;
 using Application_Layer.Commands.CategoryCommands.UpdateCategory;
 using Application_Layer.DTOs;
+using Application_Layer.Queries.CategoryQueries.GetCategoriesWithServices;
 
 namespace API_Layer.Controllers
 {
@@ -35,6 +36,16 @@ namespace API_Layer.Controllers
             var query = new GetAllCategoriesQuery();
             var categories = await _mediator.Send(query);
             return Ok(categories);
+        }
+
+        // GET: api/categories/GetCategoriesWithServices
+        [HttpGet("GetCategoriesWithServices")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCategoriesWithServices()
+        {
+            var query = new GetCategoriesWithServicesQuery();
+            var categoriesWithServices = await _mediator.Send(query);
+            return Ok(categoriesWithServices);
         }
 
         // POST: api/categories/create
@@ -66,24 +77,24 @@ namespace API_Layer.Controllers
         {
             var command = new DeleteCategoryCommand(id);
             var result = await _mediator.Send(command);
-            
+
             if (!result.Success)
                 return NotFound(result.Message);
-            
+
             return NoContent();
         }
 
         // POST: api/categories/{categoryId}/add-service
         [HttpPost("{categoryId}/add-service")]
         [Authorize(Roles = "Admin,Employee")]
-        public async Task<IActionResult> AddServiceToCategory(Guid categoryId,  Guid serviceId)
+        public async Task<IActionResult> AddServiceToCategory(Guid categoryId, Guid serviceId)
         {
             var command = new AddServiceToCategoryCommand(categoryId, serviceId);
             var result = await _mediator.Send(command);
-            
+
             if (!result.Success)
                 return BadRequest(result.Message);
-            
+
             return Ok(result.Message);
         }
 
@@ -98,4 +109,4 @@ namespace API_Layer.Controllers
             return NoContent();
         }
     }
-} 
+}

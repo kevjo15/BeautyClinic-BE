@@ -51,6 +51,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+var tokenValidationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    ValidIssuer = jwtSettings["Issuer"],
+    ValidAudience = jwtSettings["Audience"],
+    IssuerSigningKey = new SymmetricSecurityKey(key),
+    ClockSkew = TimeSpan.Zero
+};
+builder.Services.AddSingleton(tokenValidationParameters);
+
 // L�gg till auktorisering med en AdminPolicy
 builder.Services.AddAuthorization();
 
@@ -81,6 +94,14 @@ builder.Services.AddCors(options =>
               .AllowCredentials()
               .SetIsOriginAllowed(_ => true); // Tillåt alla origins under utveckling
     });
+    // CORS-policy för vanliga API-anrop från frontend
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Ersätt med din frontend-URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
@@ -94,8 +115,8 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            
-            if (!string.IsNullOrEmpty(accessToken) && 
+
+            if (!string.IsNullOrEmpty(accessToken) &&
                 (path.StartsWithSegments("/chatHub") || path.StartsWithSegments("/notificationHub")))
             {
                 context.Token = accessToken;
@@ -153,6 +174,8 @@ app.UseHttpsRedirection();
 
 // Enable serving static files
 app.UseStaticFiles();
+
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 

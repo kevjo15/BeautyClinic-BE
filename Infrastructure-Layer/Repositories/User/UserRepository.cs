@@ -32,11 +32,6 @@ namespace Infrastructure_Layer.Repositories.User
             return await _userManager.FindByIdAsync(userId);
         }
 
-        public async Task<UserModel> FindByRefreshTokenAsync(string refreshToken)
-        {
-            return await _userManager.Users
-                .FirstOrDefaultAsync(user => user.RefreshToken == refreshToken);
-        }
 
         public async Task<IdentityResult> RegisterUserAsync(UserModel newUser, string password)
         {
