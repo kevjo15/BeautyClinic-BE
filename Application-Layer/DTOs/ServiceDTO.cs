@@ -9,5 +9,6 @@ namespace Application_Layer.DTO_s
         public string Description { get; set; }
         public TimeSpan Duration { get; set; }
         public decimal Price { get; set; }
+        public string ImageUrl { get; set; }
     }
 }

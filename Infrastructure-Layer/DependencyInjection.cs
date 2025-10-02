@@ -10,13 +10,16 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Infrastructure_Layer.Repositories.Service;
 using Application_Layer.Interfaces;
+using Application_Layer.Services;
+using Azure.Identity;
+using Azure.Storage.Blobs;
 using Infrastructure_Layer.Repositories;
 using Infrastructure_Layer.Repositories.Conversation;
 using Infrastructure_Layer.Repositories.Message;
 using Infrastructure_Layer.Repositories.Notification;
-
+using Infrastructure_Layer.Repositories.Service;
+using Application_Layer.Services;
 
 namespace Infrastructure_Layer
 {
@@ -36,6 +39,23 @@ namespace Infrastructure_Layer
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
+
+            var useAzurite = configuration.GetValue<bool>("Storage:UseAzurite", false);
+            if (useAzurite)
+            {
+                var conn = configuration["Storage:ConnectionString"] ?? "UseDevelopmentStorage=true";
+                services.AddSingleton(new BlobServiceClient(conn));
+                services.AddScoped<IFileService, FileService>();
+            }
+            else
+            {
+                var account = configuration["Storage:AccountName"];
+                if (!string.IsNullOrEmpty(account))
+                {
+                    services.AddSingleton(new BlobServiceClient(new Uri($"https://{account}.blob.core.windows.net"), new DefaultAzureCredential()));
+                    services.AddScoped<IFileService, FileService>();
+                }
+            }
 
             return services;
         }

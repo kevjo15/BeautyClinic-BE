@@ -10,6 +10,7 @@ namespace Domain_Layer.Models
         public string Description { get; set; }
         public TimeSpan Duration { get; set; }
         public decimal Price { get; set; }
+        public string ImageUrl { get; set; }
         public Guid? CategoryId { get; set; }
         public CategoryModel Category { get; set; }
     }
