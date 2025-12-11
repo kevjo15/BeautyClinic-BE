@@ -90,6 +90,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att ge volym och form till läpparna med 1 ml fillers.",
                         Duration = TimeSpan.FromMinutes(30),
                         Price = 2500.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/c51afadc-460c-4901-8292-1f98c58cb355.png",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -99,6 +100,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En lätt volymökning med 0.5 ml fillers för en naturlig look.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 1500.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/91581ea5-8ce9-4f00-8dc1-20f88eac78ae.png",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -108,6 +110,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att reducera linjer och rynkor i pannan.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 2000.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/5565f6e4-51d3-4a78-9954-88d60bfaa585.png",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     },
                     new ServiceModel
@@ -117,6 +120,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att lösa upp oönskade fillers.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 2000.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/hyalase.jpg",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -126,6 +130,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Botox i käkmuskulaturen för att lindra tandgnissling.",
                         Duration = TimeSpan.FromMinutes(30),
                         Price = 2500.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/botox-kaklinje.jpg",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     },
                     new ServiceModel
@@ -135,6 +140,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Behandling som förbättrar hudens struktur genom små nålstick.",
                         Duration = TimeSpan.FromMinutes(60),
                         Price = 1800.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/microneedling.jpg",
                         CategoryId = categories.First(c => c.Name == "Microneedling").Id
                     },
                     new ServiceModel
@@ -144,6 +150,7 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Behandling för att minska rynkor runt ögonen med botox.",
                         Duration = TimeSpan.FromMinutes(15),
                         Price = 1800.00m,
+                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/botox-kraksparkar.jpg",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     }
                 };
