@@ -2,6 +2,11 @@ using Application_Layer.Interfaces;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Infrastructure_Layer.Repositories.Service
 {
@@ -19,40 +24,26 @@ namespace Infrastructure_Layer.Repositories.Service
             return await _context.Services.ToListAsync();
         }
 
-        public async Task<ServiceModel> GetServiceByIdAsync(Guid id)
+        public async Task<ServiceModel> GetServiceByIdAsync(Guid serviceId)
         {
-            return await _context.Services
-                .FirstOrDefaultAsync(s => s.Id == id);
-        }
-
-        public async Task<List<ServiceModel>> GetAllAsync()
-        {
-            return await _context.Services.ToListAsync();
-        }
-
-        public async Task<ServiceModel> GetByNameAsync(string name)
-        {
-            return await _context.Services
-                .FirstOrDefaultAsync(s => s.Name == name);
+            return await _context.Services.FindAsync(serviceId);
         }
 
         public async Task<bool> AddServiceAsync(ServiceModel service)
         {
-            await _context.Services.AddAsync(service);
-            var saved = await _context.SaveChangesAsync();
-            return saved > 0;
+            _context.Services.Add(service);
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> UpdateServiceAsync(ServiceModel service)
         {
             _context.Services.Update(service);
-            var saved = await _context.SaveChangesAsync();
-            return saved > 0;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task DeleteServiceAsync(Guid id)
         {
-            var service = await GetServiceByIdAsync(id);
+            var service = await _context.Services.FindAsync(id);
             if (service != null)
             {
                 _context.Services.Remove(service);
@@ -62,9 +53,23 @@ namespace Infrastructure_Layer.Repositories.Service
 
         public async Task<IEnumerable<ServiceModel>> GetServicesByCategoryAsync(Guid categoryId)
         {
-            return await _context.Services
-                .Where(s => s.CategoryId == categoryId)
-                .ToListAsync();
+            return await _context.Services.Where(s => s.CategoryId == categoryId).ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<ServiceModel>> GetAllAsync(CancellationToken ct)
+        {
+            return await _context.Services.AsNoTracking().ToListAsync(ct);
+        }
+
+        public async Task<ServiceModel?> GetByIdAsync(Guid id, CancellationToken ct)
+        {
+            return await _context.Services.FirstOrDefaultAsync(s => s.Id == id, ct);
+        }
+
+        public async Task UpdateAsync(ServiceModel service, CancellationToken ct)
+        {
+            _context.Services.Update(service);
+            await _context.SaveChangesAsync(ct);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿﻿using Application_Layer.Jwt;
 using Application_Layer.PipelineBehaviour;
 using FluentValidation;
+using Application_Layer.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,6 +20,8 @@ namespace Application_Layer
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
+            services.AddScoped<IFileService, FileService>();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

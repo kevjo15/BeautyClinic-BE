@@ -12,6 +12,11 @@ using Application_Layer.DTO_s;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
+using Application_Layer.Services;
+using Microsoft.AspNetCore.Http;
+using Application_Layer.Features.Services.Commands.UploadServiceImage;
+using Application_Layer.Features.Services.Queries.GetAllServicesWithSas;
+using System.Threading;
 
 namespace API_Layer.Controllers
 {
@@ -32,6 +37,13 @@ namespace API_Layer.Controllers
         {
             var services = await _mediator.Send(new GetAllServicesQuery());
             return Ok(services);
+        }
+
+        [HttpGet("GetAllServicesWithSas")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IReadOnlyList<ServiceDTO>>> GetAllWithSas(CancellationToken ct)
+        {
+            return Ok(await _mediator.Send(new GetAllServicesWithSasQuery(), ct));
         }
 
         // POST: api/services/create
@@ -84,5 +96,14 @@ namespace API_Layer.Controllers
             var services = await _mediator.Send(query);
             return Ok(services);
         }
+
+        [Authorize]
+        [HttpPost("{serviceId}/image")]
+        public async Task<ActionResult<UploadServiceImageResult>> UploadImage([FromRoute] Guid serviceId, IFormFile file, CancellationToken ct)
+        {
+            if (file is null) return BadRequest("file is required");
+            var res = await _mediator.Send(new UploadServiceImageCommand(serviceId, file), ct);
+            return Ok(res);
+        }
     }
-} 
+}
