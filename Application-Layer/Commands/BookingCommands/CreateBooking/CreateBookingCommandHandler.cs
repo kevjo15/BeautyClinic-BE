@@ -14,13 +14,17 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
         private readonly IMediator _mediator;
 
         private readonly INotificationService _notificationService;
+        private readonly IConversationRepository _conversationRepository;
+        private readonly IUserRepository _userRepository;
 
         public CreateBookingCommandHandler(
             IBookingRepository bookingRepository,
             IMapper mapper,
             IServiceRepository serviceRepository,
             IMediator mediator,
-            INotificationService notificationService
+            INotificationService notificationService,
+            IConversationRepository conversationRepository,
+            IUserRepository userRepository
         )
         {
             _bookingRepository = bookingRepository;
@@ -28,6 +32,8 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
             _serviceRepository = serviceRepository;
             _mediator = mediator;
             _notificationService = notificationService;
+            _conversationRepository = conversationRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<CreateBookingResult> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
@@ -44,6 +50,34 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                 // 2) Skapa & spara bokning
                 var booking = _mapper.Map<BookingModel>(request.Booking);
                 booking.Id = Guid.NewGuid();
+                // Assign employee only if provided; chat activates first when employee exists
+                var employeeId = request.Booking.EmployeeId;
+                booking.EmployeeId = employeeId;
+
+                // Create conversation only when an employee is assigned
+                if (!string.IsNullOrWhiteSpace(employeeId))
+                {
+                    var participantIds = new List<Guid>();
+                    if (Guid.TryParse(booking.UserId, out var patientGuid))
+                    {
+                        participantIds.Add(patientGuid);
+                    }
+                    if (Guid.TryParse(employeeId, out var employeeGuid))
+                    {
+                        participantIds.Add(employeeGuid);
+                    }
+
+                    var conversation = new ConversationModel
+                    {
+                        Id = Guid.NewGuid(),
+                        ParticipantIds = participantIds,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _conversationRepository.CreateAsync(conversation);
+
+                    booking.ConversationId = conversation.Id;
+                }
+
                 await _bookingRepository.AddAsync(booking);
 
                 // 3) Spara notifikation i DB

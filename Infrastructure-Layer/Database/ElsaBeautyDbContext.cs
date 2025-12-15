@@ -1,6 +1,9 @@
 ﻿﻿using Domain_Layer.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Infrastructure_Layer.Database
 {
@@ -33,6 +36,12 @@ namespace Infrastructure_Layer.Database
             builder.Entity<ConversationModel>(entity =>
             {
                 entity.HasKey(c => c.Id);
+                entity.Property(c => c.ParticipantIds)
+                      .HasConversion(
+                          v => string.Join(',', v ?? new List<Guid>()),
+                          v => v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                .Select(Guid.Parse)
+                                .ToList());
                 entity.HasMany(c => c.Messages)
                       .WithOne()
                       .HasForeignKey(m => m.ConversationId)

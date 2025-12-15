@@ -26,6 +26,7 @@ namespace Application_Layer.AutoMapper
             CreateMap<BookingModel, UpdateBookingDTO>().ReverseMap();
             CreateMap<MessageModel, SendMessageDTO>().ReverseMap();
             CreateMap<NotificationModel, NotificationDTO>();
+            CreateMap<UserModel, EmployeeDTO>();
 
             // Notification mappings
             CreateMap<CreateNotificationCommand, NotificationModel>()
