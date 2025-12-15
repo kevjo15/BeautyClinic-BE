@@ -8,6 +8,7 @@ using Application_Layer.DTO_s;
 using Application_Layer.DTOs;
 using Application_Layer.Queries.UserQueries.GetUserById;
 using Application_Layer.Queries.UserQueries.GetUserName;
+using Application_Layer.Queries.UserQueries.GetEmployees;
 using Domain_Layer.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -140,6 +141,7 @@ namespace API_Layer.Controllers
             return Ok("Password updated successfully.");
         }
 
+        [Authorize]
         [HttpGet("me")]
         public IActionResult GetUser()
         {
@@ -152,8 +154,8 @@ namespace API_Layer.Controllers
             return Ok(new { userId, email, role });
         }
 
-        [HttpGet("me/name")]
         [Authorize]
+        [HttpGet("me/name")]
         public async Task<IActionResult> GetUserName()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -163,6 +165,14 @@ namespace API_Layer.Controllers
             if (userNameDto == null) return NotFound($"User with ID {userId} was not found.");
 
             return Ok(userNameDto);
+        }
+
+        [Authorize(Roles = "Admin,Employee")]
+        [HttpGet("employees")]
+        public async Task<IActionResult> GetEmployees()
+        {
+            var employees = await _mediator.Send(new GetEmployeesQuery());
+            return Ok(employees);
         }
 
 

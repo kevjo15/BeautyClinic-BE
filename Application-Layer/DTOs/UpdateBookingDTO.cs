@@ -5,5 +5,6 @@ namespace Application_Layer.DTOs
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public Guid ServiceId { get; set; }
+        public string? EmployeeId { get; set; }
     }
 }

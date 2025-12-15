@@ -66,5 +66,17 @@ namespace Infrastructure_Layer.Repositories.User
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             return await _userManager.ResetPasswordAsync(user, token, newPassword);
         }
+
+        public async Task<UserModel?> GetFirstEmployeeAsync()
+        {
+            var employees = await _userManager.GetUsersInRoleAsync("Employee");
+            return employees.FirstOrDefault();
+        }
+
+        public async Task<List<UserModel>> GetEmployeesAsync()
+        {
+            var employees = await _userManager.GetUsersInRoleAsync("Employee");
+            return employees.ToList();
+        }
     }
 }
