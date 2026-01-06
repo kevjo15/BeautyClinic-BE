@@ -67,6 +67,26 @@ namespace Infrastructure_Layer.Database
                       .OnDelete(DeleteBehavior.SetNull);
             });
 
+            builder.Entity<BookingModel>(entity =>
+            {
+                entity.HasKey(b => b.Id);
+
+                entity.HasOne(b => b.User)
+                      .WithMany()
+                      .HasForeignKey(b => b.UserId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.Employee)
+                      .WithMany()
+                      .HasForeignKey(b => b.EmployeeId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(b => b.Service)
+                      .WithMany()
+                      .HasForeignKey(b => b.ServiceId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
             base.OnModelCreating(builder);
         }
     }
