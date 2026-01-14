@@ -133,5 +133,42 @@ namespace API_Layer.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, conversationId.ToString());
             await Clients.Caller.SendAsync("LeftConversation", conversationId);
         }
+
+        public async Task MarkMessageAsRead(Guid messageId, Guid conversationId)
+        {
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new HubException("User not authenticated");
+            }
+
+            // Verifiera att användaren är en del av konversationen
+            var conversation = await _conversationRepository.GetByIdAsync(conversationId);
+            if (conversation == null)
+            {
+                throw new HubException("Conversation not found");
+            }
+
+            if (!conversation.ParticipantIds.Any(id => id.ToString() == userId))
+            {
+                throw new HubException("User is not a participant in this conversation");
+            }
+
+            // Uppdatera meddelandet i databasen via repository
+            var message = conversation.Messages.FirstOrDefault(m => m.Id == messageId);
+            if (message != null && message.ReadAt == null)
+            {
+                message.ReadAt = DateTime.UtcNow;
+                await _conversationRepository.UpdateAsync(conversation);
+
+                // Broadcast till andra användare i konversationen att meddelandet är läst
+                await Clients.Group(conversationId.ToString()).SendAsync("MessageRead", new
+                {
+                    MessageId = messageId,
+                    ReadAt = message.ReadAt,
+                    ReadBy = userId
+                });
+            }
+        }
     }
 }
