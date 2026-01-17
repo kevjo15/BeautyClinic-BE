@@ -1,3 +1,4 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,6 +16,8 @@ namespace Infrastructure_Layer.Migrations
                 table: "Messages",
                 type: "datetime2",
                 nullable: true);
+
+            // Booking indexes and foreign keys already exist from previous migrations
         }
 
         /// <inheritdoc />
