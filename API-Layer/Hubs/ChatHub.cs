@@ -56,7 +56,10 @@ namespace API_Layer.Hubs
             };
 
             var messageCommand = new SendMessageCommand { MessageDto = messageDto };
-            var messageResult = await _mediator.Send(messageCommand);
+            var messageId = await _mediator.Send(messageCommand);
+
+            // Sätt ID på DTO:n så klienten får det
+            messageDto.Id = messageId;
 
             // Hitta mottagaren
             var recipientId = conversation.ParticipantIds.FirstOrDefault(id => id.ToString() != userId);
@@ -132,6 +135,40 @@ namespace API_Layer.Hubs
 
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, conversationId.ToString());
             await Clients.Caller.SendAsync("LeftConversation", conversationId);
+        }
+
+        public async Task StartTyping(Guid conversationId)
+        {
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new HubException("User not authenticated");
+            }
+
+            // Broadcast till andra i konversationen att användaren skriver
+            await Clients.OthersInGroup(conversationId.ToString()).SendAsync("UserTyping", new
+            {
+                UserId = userId,
+                ConversationId = conversationId,
+                IsTyping = true
+            });
+        }
+
+        public async Task StopTyping(Guid conversationId)
+        {
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new HubException("User not authenticated");
+            }
+
+            // Broadcast till andra i konversationen att användaren slutat skriva
+            await Clients.OthersInGroup(conversationId.ToString()).SendAsync("UserTyping", new
+            {
+                UserId = userId,
+                ConversationId = conversationId,
+                IsTyping = false
+            });
         }
 
         public async Task MarkMessageAsRead(Guid messageId, Guid conversationId)

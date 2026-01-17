@@ -1,6 +1,7 @@
 ﻿﻿using Domain_Layer.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,12 +37,20 @@ namespace Infrastructure_Layer.Database
             builder.Entity<ConversationModel>(entity =>
             {
                 entity.HasKey(c => c.Id);
+
+                var guidListComparer = new ValueComparer<List<Guid>>(
+                    (c1, c2) => (c1 ?? new List<Guid>()).SequenceEqual(c2 ?? new List<Guid>()),
+                    c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c == null ? new List<Guid>() : c.ToList());
+
                 entity.Property(c => c.ParticipantIds)
                       .HasConversion(
                           v => string.Join(',', v ?? new List<Guid>()),
                           v => v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                                 .Select(Guid.Parse)
-                                .ToList());
+                                .ToList())
+                      .Metadata.SetValueComparer(guidListComparer);
+
                 entity.HasMany(c => c.Messages)
                       .WithOne()
                       .HasForeignKey(m => m.ConversationId)
