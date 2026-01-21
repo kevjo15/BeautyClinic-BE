@@ -4,6 +4,7 @@ using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure_Layer.Migrations
 {
     [DbContext(typeof(ElsaBeautyDbContext))]
-    partial class ElsaBeautyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251211232356_AddConversationToBooking")]
+    partial class AddConversationToBooking
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace Infrastructure_Layer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain_Layer.Models.BookingModel", b =>
+            modelBuilder.Entity("BookingModel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -31,11 +34,11 @@ namespace Infrastructure_Layer.Migrations
                     b.Property<Guid?>("ConversationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("EmployeeId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("NurseId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uniqueidentifier");
@@ -45,15 +48,9 @@ namespace Infrastructure_Layer.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId");
-
-                    b.HasIndex("ServiceId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Bookings");
                 });
@@ -106,9 +103,6 @@ namespace Infrastructure_Layer.Migrations
 
                     b.Property<Guid>("ConversationId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<Guid>("SenderId")
                         .HasColumnType("uniqueidentifier");
@@ -413,32 +407,6 @@ namespace Infrastructure_Layer.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain_Layer.Models.BookingModel", b =>
-                {
-                    b.HasOne("Domain_Layer.Models.UserModel", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Domain_Layer.Models.ServiceModel", "Service")
-                        .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain_Layer.Models.UserModel", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("Service");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain_Layer.Models.MessageModel", b =>
                 {
                     b.HasOne("Domain_Layer.Models.ConversationModel", null)
@@ -450,7 +418,7 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Domain_Layer.Models.NotificationModel", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.BookingModel", "Booking")
+                    b.HasOne("BookingModel", "Booking")
                         .WithMany()
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.SetNull);

@@ -7,6 +7,16 @@ namespace Application_Layer.DTOs
         public Guid ServiceId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        // Add other properties as needed
+        public string? EmployeeId { get; set; }
+        public Guid? ConversationId { get; set; }
+
+        // Customer/User information
+        public string? CustomerName { get; set; }
+
+        // Employee information
+        public string? EmployeeName { get; set; }
+
+        // Service information
+        public string? ServiceName { get; set; }
     }
 } 
