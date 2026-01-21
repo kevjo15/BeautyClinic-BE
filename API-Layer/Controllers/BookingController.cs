@@ -4,9 +4,11 @@ using MediatR;
 using Application_Layer.Commands.BookingCommands.CreateBooking;
 using Application_Layer.Commands.BookingCommands.UpdateBooking;
 using Application_Layer.Commands.BookingCommands.CancelBooking;
+using Application_Layer.Commands.BookingCommands.AssignEmployee;
 using Application_Layer.Queries.BookingQueries.GetBookingById;
 using Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots;
 using Application_Layer.Queries.BookingQueries.GetAllBookings;
+using Application_Layer.Queries.BookingQueries.GetEmployeeBookings;
 using Application_Layer.DTOs;
 using System.Security.Claims;
 
@@ -50,14 +52,14 @@ namespace API_Layer.Controllers
         {
             var query = new GetBookingByIdQuery(id);
             var booking = await _mediator.Send(query);
-            
+
             // Verify the user owns this booking or is an employee
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (booking.UserId != userId && !User.IsInRole("Employee"))
             {
                 return Forbid();
             }
-            
+
             return Ok(booking);
         }
 
@@ -127,7 +129,7 @@ namespace API_Layer.Controllers
         }
 
         [HttpGet("GetBookingsByUserIdForEmployee/{userId}")]
-        [Authorize(Roles = "Employee")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<List<BookingDTO>>> GetBookingsByUserIdForEmployee(string userId)
         {
             var query = new GetBookingsByUserIdQuery(userId);
@@ -136,12 +138,59 @@ namespace API_Layer.Controllers
         }
 
         [HttpGet("GetAllBookings")]
-        [Authorize(Roles = "Employee")]
+        [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<List<BookingDTO>>> GetAllBookings()
         {
             var query = new GetAllBookingsQuery();
             var bookings = await _mediator.Send(query);
             return Ok(bookings);
         }
+
+        [HttpPut("AssignEmployee/{id}")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<ActionResult<BookingDTO>> AssignEmployee(Guid id, [FromBody] AssignEmployeeRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.EmployeeId))
+            {
+                return BadRequest("EmployeeId is required.");
+            }
+
+            var command = new AssignEmployeeCommand
+            {
+                BookingId = id,
+                EmployeeId = request.EmployeeId
+            };
+
+            var updated = await _mediator.Send(command);
+            return Ok(updated);
+        }
+
+        [HttpGet("MyAssigned")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<ActionResult<List<BookingDTO>>> GetMyAssigned([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        {
+            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(employeeId))
+            {
+                return Unauthorized();
+            }
+
+            var start = from ?? DateTime.UtcNow.Date;
+            var end = to ?? start.AddDays(7);
+
+            var query = new GetEmployeeBookingsQuery
+            {
+                EmployeeId = employeeId,
+                From = start,
+                To = end
+            };
+            var bookings = await _mediator.Send(query);
+            return Ok(bookings);
+        }
+    }
+
+    public class AssignEmployeeRequest
+    {
+        public string EmployeeId { get; set; } = string.Empty;
     }
 }

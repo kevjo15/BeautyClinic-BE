@@ -21,11 +21,19 @@ namespace Application_Layer.AutoMapper
             CreateMap<CategoryModel, CategoryWithServicesDTO>();
             CreateMap<UserModel, UserNameDTO>();
             CreateMap<ServiceDTO, ServiceModel>().ReverseMap();
-            CreateMap<BookingModel, BookingDTO>().ReverseMap();
+            CreateMap<BookingModel, BookingDTO>()
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
+                    src.User != null ? $"{src.User.FirstName} {src.User.LastName}".Trim() : null))
+                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src =>
+                    src.Employee != null ? $"{src.Employee.FirstName} {src.Employee.LastName}".Trim() : null))
+                .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src =>
+                    src.Service != null ? src.Service.Name : null))
+                .ReverseMap();
             CreateMap<CreateBookingDTO, BookingModel>().ReverseMap();
             CreateMap<BookingModel, UpdateBookingDTO>().ReverseMap();
             CreateMap<MessageModel, SendMessageDTO>().ReverseMap();
             CreateMap<NotificationModel, NotificationDTO>();
+            CreateMap<UserModel, EmployeeDTO>();
 
             // Notification mappings
             CreateMap<CreateNotificationCommand, NotificationModel>()

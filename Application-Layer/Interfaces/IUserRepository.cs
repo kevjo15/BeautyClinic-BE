@@ -12,5 +12,7 @@ namespace Application_Layer.Interfaces
         Task<IdentityResult> UpdateUserAsync(UserModel user);
         Task<bool> RevokeRefreshTokenAsync(string userId);
         Task<IdentityResult> UpdatePasswordAsync(UserModel user, string newPassword);
+        Task<UserModel?> GetFirstEmployeeAsync();
+        Task<List<UserModel>> GetEmployeesAsync();
     }
 }

@@ -1,6 +1,7 @@
 using Application_Layer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure_Layer.Database;
+using Domain_Layer.Models;
 
 namespace Infrastructure_Layer.Repositories
 {
@@ -15,7 +16,11 @@ namespace Infrastructure_Layer.Repositories
 
         public async Task<BookingModel> GetByIdAsync(Guid id)
         {
-            return await _context.Bookings.FindAsync(id);
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Employee)
+                .Include(b => b.Service)
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task AddAsync(BookingModel booking)
@@ -40,6 +45,9 @@ namespace Infrastructure_Layer.Repositories
         public async Task<List<BookingModel>> GetByUserIdAsync(string userId)
         {
             return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Employee)
+                .Include(b => b.Service)
                 .Where(b => b.UserId == userId)
                 .ToListAsync();
         }
@@ -47,15 +55,35 @@ namespace Infrastructure_Layer.Repositories
         public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end)
         {
             return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Employee)
+                .Include(b => b.Service)
                 .Where(b => (b.StartTime >= start && b.StartTime < end) ||
                            (b.EndTime > start && b.EndTime <= end) ||
                            (b.StartTime <= start && b.EndTime >= end))
                 .ToListAsync();
         }
 
+        public async Task<List<BookingModel>> GetByEmployeeAndRangeAsync(string employeeId, DateTime from, DateTime to)
+        {
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Employee)
+                .Include(b => b.Service)
+                .Where(b => b.EmployeeId == employeeId &&
+                    ((b.StartTime >= from && b.StartTime < to) ||
+                     (b.EndTime > from && b.EndTime <= to) ||
+                     (b.StartTime <= from && b.EndTime >= to)))
+                .ToListAsync();
+        }
+
         public async Task<List<BookingModel>> GetAllAsync()
         {
-            return await _context.Bookings.ToListAsync();
+            return await _context.Bookings
+                .Include(b => b.User)
+                .Include(b => b.Employee)
+                .Include(b => b.Service)
+                .ToListAsync();
         }
     }
 }
