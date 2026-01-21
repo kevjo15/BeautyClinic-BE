@@ -1,25 +1,21 @@
-﻿﻿using Infrastructure_Layer.Database;
-using Infrastructure_Layer.Repositories.User;
-using Infrastructure_Layer.DataSeeder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Application_Layer.Interfaces;
 using Application_Layer.Services;
+using Azure.Communication.Email;
+using Azure.Communication.Sms;
 using Azure.Identity;
 using Azure.Storage.Blobs;
+using Infrastructure_Layer.DataSeeder;
+using Infrastructure_Layer.Database;
 using Infrastructure_Layer.Repositories;
 using Infrastructure_Layer.Repositories.Conversation;
 using Infrastructure_Layer.Repositories.Message;
 using Infrastructure_Layer.Repositories.Notification;
 using Infrastructure_Layer.Repositories.Service;
-using Application_Layer.Services;
+using Infrastructure_Layer.Repositories.User;
+using Infrastructure_Layer.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure_Layer
 {
@@ -30,7 +26,7 @@ namespace Infrastructure_Layer
             var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             services.AddDbContext<ElsaBeautyDbContext>(options =>
-            options.UseSqlServer(connectionString));
+                options.UseSqlServer(connectionString));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IServiceRepository, ServiceRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -55,6 +51,20 @@ namespace Infrastructure_Layer
                     services.AddSingleton(new BlobServiceClient(new Uri($"https://{account}.blob.core.windows.net"), new DefaultAzureCredential()));
                     services.AddScoped<IFileService, FileService>();
                 }
+            }
+
+            var communicationServicesConnection = configuration["CommunicationServices:ConnectionString"];
+            if (!string.IsNullOrWhiteSpace(communicationServicesConnection))
+            {
+                services.AddSingleton(new EmailClient(communicationServicesConnection));
+                services.AddSingleton(new SmsClient(communicationServicesConnection));
+                services.AddScoped<IEmailSender, AcsEmailSender>();
+                services.AddScoped<ISmsSender, AcsSmsSender>();
+            }
+            else
+            {
+                services.AddScoped<IEmailSender, NullEmailSender>();
+                services.AddScoped<ISmsSender, NullSmsSender>();
             }
 
             return services;
