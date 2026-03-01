@@ -1,4 +1,4 @@
-﻿using Application_Layer.Commands.UserCommands.Login;
+using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.Commands.UserCommands.RefreshToken;
 using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.Commands.UserCommands.RevokeRefreshToken;
@@ -9,12 +9,9 @@ using Application_Layer.DTOs;
 using Application_Layer.Queries.UserQueries.GetUserById;
 using Application_Layer.Queries.UserQueries.GetUserName;
 using Application_Layer.Queries.UserQueries.GetEmployees;
-using Domain_Layer.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace API_Layer.Controllers
@@ -24,10 +21,13 @@ namespace API_Layer.Controllers
     public class UserController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IConfiguration _configuration;
+        private const string RefreshTokenCookieName = "refreshToken";
 
-        public UserController(IMediator mediator)
+        public UserController(IMediator mediator, IConfiguration configuration)
         {
             _mediator = mediator;
+            _configuration = configuration;
         }
 
         [AllowAnonymous]
@@ -44,10 +44,14 @@ namespace API_Layer.Controllers
             return Ok(result.CreatedUser);
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDTO)
         {
-            var command = new LoginCommand(loginUserDTO);
+            var ipAddress = GetIpAddress();
+            var userAgent = GetUserAgent();
+
+            var command = new LoginCommand(loginUserDTO, ipAddress, userAgent);
             var result = await _mediator.Send(command);
 
             if (!result.Successful)
@@ -55,7 +59,14 @@ namespace API_Layer.Controllers
                 return BadRequest(result.Error);
             }
 
-            return Ok(new { token = result.Token });
+            // Set refresh token in HttpOnly cookie
+            if (!string.IsNullOrEmpty(result.RefreshToken))
+            {
+                SetRefreshTokenCookie(result.RefreshToken);
+            }
+
+            // Return only the access token in the response body
+            return Ok(new { accessToken = result.Token });
         }
 
         [Authorize(Roles = "Admin")]
@@ -98,32 +109,93 @@ namespace API_Layer.Controllers
             return Ok("This is an Admin-only area.");
         }
 
+        [AllowAnonymous]
         [HttpPost("refreshAccessToken")]
-        public async Task<IActionResult> RefreshToken([FromBody] RefreshAccessTokenRequestDTO request)
+        public async Task<IActionResult> RefreshToken()
         {
-            var command = new RefreshAccessTokenCommand(request.AccessToken);
+            // Read refresh token from HttpOnly cookie
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return Unauthorized("No refresh token provided.");
+            }
+
+            var ipAddress = GetIpAddress();
+            var userAgent = GetUserAgent();
+
+            var command = new RefreshAccessTokenCommand(refreshToken, ipAddress, userAgent);
             var result = await _mediator.Send(command);
 
             if (!result.Successful)
             {
+                // Clear the invalid cookie
+                ClearRefreshTokenCookie();
                 return Unauthorized(result.Error);
             }
 
-            return Ok(new { AccessToken = result.AccessToken });
+            // Set the new refresh token in HttpOnly cookie (rotation)
+            if (!string.IsNullOrEmpty(result.RefreshToken))
+            {
+                SetRefreshTokenCookie(result.RefreshToken);
+            }
+
+            return Ok(new { accessToken = result.AccessToken });
         }
 
-        [HttpPost("revokeRefreshtoken")]
+        [Authorize]
+        [HttpPost("revokeRefreshToken")]
         public async Task<IActionResult> RevokeRefreshToken()
+        {
+            var refreshToken = Request.Cookies[RefreshTokenCookieName];
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var ipAddress = GetIpAddress();
+
+            var command = new RevokeRefreshTokenCommand(
+                refreshToken: refreshToken,
+                userId: userId,
+                ipAddress: ipAddress,
+                reason: "User logout");
+
+            var result = await _mediator.Send(command);
+
+            // Always clear the cookie on logout
+            ClearRefreshTokenCookie();
+
+            if (!result)
+            {
+                return BadRequest("Failed to revoke refresh token.");
+            }
+
+            return Ok(new { message = "Logged out successfully." });
+        }
+
+        [Authorize]
+        [HttpPost("revokeAllTokens")]
+        public async Task<IActionResult> RevokeAllTokens()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null) return Unauthorized();
 
-            var command = new RevokeRefreshTokenCommand(userId);
+            var ipAddress = GetIpAddress();
+
+            var command = new RevokeRefreshTokenCommand(
+                refreshToken: null,
+                userId: userId,
+                ipAddress: ipAddress,
+                reason: "User revoked all sessions");
+
             var result = await _mediator.Send(command);
 
-            if (!result) return BadRequest("Failed to revoke refresh token.");
+            // Clear the cookie
+            ClearRefreshTokenCookie();
 
-            return Ok("Refresh token revoked successfully.");
+            if (!result)
+            {
+                return BadRequest("Failed to revoke tokens.");
+            }
+
+            return Ok(new { message = "All sessions have been terminated." });
         }
 
         [Authorize]
@@ -175,22 +247,63 @@ namespace API_Layer.Controllers
             return Ok(employees);
         }
 
+        #region Private Helper Methods
 
-        //[HttpGet("test-auth")]
-        //public IActionResult TestAuth()
-        //{
-        //    // Kontrollera om användaren är autentiserad
-        //    var isAuthenticated = User.Identity.IsAuthenticated;
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var refreshTokenDays = _configuration.GetValue<int>("JwtSettings:RefreshTokenExpiryDays", 7);
+            var isProduction = !string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                "Development",
+                StringComparison.OrdinalIgnoreCase);
 
-        //    // Hämta användarens claims
-        //    var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isProduction, // Only require HTTPS in production
+                SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(refreshTokenDays),
+                Path = "/api/User" // Restrict cookie to auth endpoints
+            };
 
-        //    // Returnera en respons som visar om användaren är autentiserad samt alla claims
-        //    return Ok(new
-        //    {
-        //        IsAuthenticated = isAuthenticated,
-        //        Claims = claims
-        //    });
-        //}
+            Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
+        }
+
+        private void ClearRefreshTokenCookie()
+        {
+            var isProduction = !string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                "Development",
+                StringComparison.OrdinalIgnoreCase);
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isProduction,
+                SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddDays(-1),
+                Path = "/api/User"
+            };
+
+            Response.Cookies.Append(RefreshTokenCookieName, "", cookieOptions);
+        }
+
+        private string? GetIpAddress()
+        {
+            // Check for forwarded IP first (if behind proxy/load balancer)
+            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                return Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim();
+            }
+
+            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+        }
+
+        private string? GetUserAgent()
+        {
+            return Request.Headers["User-Agent"].FirstOrDefault();
+        }
+
+        #endregion
     }
 }

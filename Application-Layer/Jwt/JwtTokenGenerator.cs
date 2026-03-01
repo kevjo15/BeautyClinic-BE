@@ -30,17 +30,13 @@ namespace Application_Layer.Jwt
             var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
 
             var claims = new List<Claim>
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-        if (user.RefreshTokenExpiryTime != null)
-        {
-            claims.Add(new Claim("RefreshTokenExpiryTime", user.RefreshTokenExpiryTime.Value.ToString("o")));
-        }
-            // Hämta rollerna för användaren från UserManager
+            // Get user roles from UserManager
             var roles = await _userManager.GetRolesAsync(user);
 
             foreach (var role in roles)
@@ -60,13 +56,6 @@ namespace Application_Layer.Jwt
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
-        }
-
-        public async Task<string> GenerateRefreshToken(UserModel user)
-        {
-            var refreshToken = Guid.NewGuid().ToString(); // En enkel implementation
-            // Här kan du spara refreshToken i databasen kopplat till användaren
-            return refreshToken;
         }
     }
 }

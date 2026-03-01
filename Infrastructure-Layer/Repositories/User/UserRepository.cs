@@ -49,18 +49,6 @@ namespace Infrastructure_Layer.Repositories.User
             return await _userManager.UpdateAsync(user);
         }
 
-        public async Task<bool> RevokeRefreshTokenAsync(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return false;
-
-            user.RefreshToken = null;
-            user.RefreshTokenExpiryTime = null;
-            await _userManager.UpdateAsync(user);
-
-            return true;
-        }
-
         public async Task<IdentityResult> UpdatePasswordAsync(UserModel user, string newPassword)
         {
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);

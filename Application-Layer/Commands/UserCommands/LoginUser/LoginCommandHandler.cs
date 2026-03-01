@@ -1,8 +1,6 @@
-﻿using Application_Layer.Interfaces;
+using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
-using AutoMapper;
 using MediatR;
-using System.Security.Cryptography;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {
@@ -10,13 +8,16 @@ namespace Application_Layer.Commands.UserCommands.Login
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IMapper _mapper;
+        private readonly IRefreshTokenService _refreshTokenService;
 
-        public LoginCommandHandler(IUserRepository userRepository, IJwtTokenGenerator jwtTokenGenerator, IMapper mapper)
+        public LoginCommandHandler(
+            IUserRepository userRepository,
+            IJwtTokenGenerator jwtTokenGenerator,
+            IRefreshTokenService refreshTokenService)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _mapper = mapper;
+            _refreshTokenService = refreshTokenService;
         }
 
         public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -35,30 +36,20 @@ namespace Application_Layer.Commands.UserCommands.Login
                     return CreateLoginResult(false, "Felaktigt lösenord.");
                 }
 
-                // Generate and store refresh token
-                var refreshToken = GenerateRefreshToken();
-                existingUser.RefreshToken = refreshToken;
-                existingUser.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7); // Example expiry time
+                // Generate refresh token using the new service (hashed and stored in DB)
+                var (rawRefreshToken, _) = await _refreshTokenService.GenerateRefreshTokenAsync(
+                    existingUser.Id,
+                    request.IpAddress,
+                    request.UserAgent);
 
-                await _userRepository.UpdateUserAsync(existingUser);
+                // Generate access token
+                var accessToken = await _jwtTokenGenerator.GenerateToken(existingUser);
 
-                var token = await _jwtTokenGenerator.GenerateToken(existingUser);
-
-                return CreateLoginResult(true, null, token, refreshToken);
+                return CreateLoginResult(true, null, accessToken, rawRefreshToken);
             }
             catch (Exception ex)
             {
                 return CreateLoginResult(false, $"An unexpected error occurred: {ex.Message}");
-            }
-        }
-
-        private string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
             }
         }
 

@@ -10,7 +10,6 @@ namespace Application_Layer.Interfaces
         Task<UserModel> FindByIdAsync(string userId);
         Task<IdentityResult> RegisterUserAsync(UserModel newUser, string password);
         Task<IdentityResult> UpdateUserAsync(UserModel user);
-        Task<bool> RevokeRefreshTokenAsync(string userId);
         Task<IdentityResult> UpdatePasswordAsync(UserModel user, string newPassword);
         Task<UserModel?> GetFirstEmployeeAsync();
         Task<List<UserModel>> GetEmployeesAsync();

@@ -5,23 +5,35 @@ namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
 {
     public class RevokeRefreshTokenCommandHandler : IRequestHandler<RevokeRefreshTokenCommand, bool>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IRefreshTokenService _refreshTokenService;
 
-        public RevokeRefreshTokenCommandHandler(IUserRepository userRepository)
+        public RevokeRefreshTokenCommandHandler(IRefreshTokenService refreshTokenService)
         {
-            _userRepository = userRepository;
+            _refreshTokenService = refreshTokenService;
         }
 
         public async Task<bool> Handle(RevokeRefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userRepository.FindByIdAsync(request.UserId);
-            if (user == null) return false;
+            // If a specific refresh token is provided, revoke just that token
+            if (!string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return await _refreshTokenService.RevokeRefreshTokenAsync(
+                    request.RefreshToken,
+                    request.IpAddress,
+                    request.Reason ?? "User logout");
+            }
 
-            user.RefreshToken = null;
-            user.RefreshTokenExpiryTime = null;
-            await _userRepository.UpdateUserAsync(user);
+            // If only userId is provided, revoke all tokens for that user
+            if (!string.IsNullOrWhiteSpace(request.UserId))
+            {
+                await _refreshTokenService.RevokeAllUserTokensAsync(
+                    request.UserId,
+                    request.IpAddress,
+                    request.Reason ?? "All sessions terminated");
+                return true;
+            }
 
-            return true;
+            return false;
         }
     }
 }

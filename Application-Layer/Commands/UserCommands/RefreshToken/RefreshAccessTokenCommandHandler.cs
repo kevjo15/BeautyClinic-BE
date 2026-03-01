@@ -1,9 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
 using MediatR;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Application_Layer.Commands.UserCommands.RefreshToken
 {
@@ -11,102 +8,61 @@ namespace Application_Layer.Commands.UserCommands.RefreshToken
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly TokenValidationParameters _tokenValidationParameters;
+        private readonly IRefreshTokenService _refreshTokenService;
 
         public RefreshAccessTokenCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
-            TokenValidationParameters tokenValidationParameters)
+            IRefreshTokenService refreshTokenService)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
-            _tokenValidationParameters = tokenValidationParameters;
+            _refreshTokenService = refreshTokenService;
         }
 
         public async Task<RefreshTokenResult> Handle(RefreshAccessTokenCommand request, CancellationToken cancellationToken)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-
             try
             {
-                // Validera token-signaturen men ignorera livstidskontrollen så att vi kan extrahera claims även om tokenet är utgånget.
-                var principal = tokenHandler.ValidateToken(request.AccessToken, new TokenValidationParameters
+                if (string.IsNullOrWhiteSpace(request.RefreshToken))
                 {
-                    ValidateIssuerSigningKey = _tokenValidationParameters.ValidateIssuerSigningKey,
-                    IssuerSigningKey = _tokenValidationParameters.IssuerSigningKey,
-                    ValidateIssuer = _tokenValidationParameters.ValidateIssuer,
-                    ValidIssuer = _tokenValidationParameters.ValidIssuer,
-                    ValidateAudience = _tokenValidationParameters.ValidateAudience,
-                    ValidAudience = _tokenValidationParameters.ValidAudience,
-                    ValidateLifetime = false // Ignorera utgången
-                }, out SecurityToken validatedToken);
-
-                // Validera att tokenet är av rätt typ och med rätt algoritm (t.ex. HS256)
-                if (!(validatedToken is JwtSecurityToken jwtToken) ||
-                    !jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return new RefreshTokenResult(false, "Felaktig token.");
+                    return new RefreshTokenResult(false, "Refresh token is required.");
                 }
 
-                // Hämta refresh-periodens utgångstid från token (claim-namn kan t.ex. vara "RefreshTokenExpiryTime")
-                var refreshExpiryClaim = principal.FindFirst("RefreshTokenExpiryTime");
-                if (refreshExpiryClaim == null)
+                // Rotate the refresh token (validates old token, revokes it, creates new one)
+                var rotationResult = await _refreshTokenService.RotateRefreshTokenAsync(
+                    request.RefreshToken,
+                    request.IpAddress,
+                    request.UserAgent);
+
+                if (rotationResult == null)
                 {
-                    return new RefreshTokenResult(false, "Saknar refresh expiry claim.");
+                    // Validation failed - token may be invalid, expired, or reused
+                    return new RefreshTokenResult(false, "Invalid or expired refresh token.");
                 }
 
-                if (!DateTime.TryParse(refreshExpiryClaim.Value, out DateTime refreshExpiryTime))
-                {
-                    return new RefreshTokenResult(false, "Ogiltigt värde för refresh expiry.");
-                }
+                var (newRawRefreshToken, newTokenEntity) = rotationResult.Value;
 
-                // Kontrollera att vi fortfarande är inom den tillåtna refresh-perioden
-                if (DateTime.UtcNow > refreshExpiryTime)
-                {
-                    return new RefreshTokenResult(false, "Refreshperioden har gått ut.");
-                }
-
-                // Hämta användarens ID från token (förutsatt att ClaimTypes.NameIdentifier finns med)
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    return new RefreshTokenResult(false, "Användar-ID saknas i token.");
-                }
-                var userId = userIdClaim.Value;
-
-                // Hämta användaren från databasen
-                var user = await _userRepository.FindByIdAsync(userId);
+                // Get the user to generate a new access token
+                var user = await _userRepository.FindByIdAsync(newTokenEntity.UserId);
                 if (user == null)
                 {
-                    return new RefreshTokenResult(false, "Användaren hittades inte.");
+                    return new RefreshTokenResult(false, "User not found.");
                 }
 
-                // (Valfritt) Jämför gärna det lagrade värdet för refresh-perioden (i DB) med det som kom från token
-                // if (user.RefreshTokenExpiryTime != refreshExpiryTime)
-                // {
-                //     return new RefreshTokenResult(false, "Mismatch i refresh token information.");
-                // }
-
-                // Generera ett nytt accessToken
+                // Generate new access token
                 var newAccessToken = await _jwtTokenGenerator.GenerateToken(user);
-                return new RefreshTokenResult(true, null, newAccessToken);
+
+                return new RefreshTokenResult(
+                    successful: true,
+                    error: null,
+                    accessToken: newAccessToken,
+                    refreshToken: newRawRefreshToken);
             }
-            catch (SecurityTokenExpiredException ex)
+            catch (Exception ex)
             {
-                return new RefreshTokenResult(false, "Token has expired: " + ex.Message);
+                return new RefreshTokenResult(false, $"An unexpected error occurred: {ex.Message}");
             }
-            catch (SecurityTokenInvalidSignatureException ex)
-            {
-               return new RefreshTokenResult(false, "Invalid token signature: " + ex.Message);
-           }
-           catch (SecurityTokenValidationException ex)
-           {
-               return new RefreshTokenResult(false, "Token validation failed: " + ex.Message);
-           }
-           catch (Exception ex)
-           {
-               return new RefreshTokenResult(false, "An unexpected error occurred: " + ex.Message);
-           }
         }
     }
 }
