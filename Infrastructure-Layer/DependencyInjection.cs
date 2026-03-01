@@ -10,6 +10,7 @@ using Infrastructure_Layer.Repositories;
 using Infrastructure_Layer.Repositories.Conversation;
 using Infrastructure_Layer.Repositories.Message;
 using Infrastructure_Layer.Repositories.Notification;
+using Infrastructure_Layer.Repositories.RefreshToken;
 using Infrastructure_Layer.Repositories.Service;
 using Infrastructure_Layer.Repositories.User;
 using Infrastructure_Layer.Services;
@@ -34,6 +35,7 @@ namespace Infrastructure_Layer
             services.AddScoped<IConversationRepository, ConversationRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             var useAzurite = configuration.GetValue<bool>("Storage:UseAzurite", false);

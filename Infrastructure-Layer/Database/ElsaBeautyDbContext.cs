@@ -21,6 +21,7 @@ namespace Infrastructure_Layer.Database
         public DbSet<ConversationModel> Conversations { get; set; }
         public DbSet<MessageModel> Messages { get; set; }
         public DbSet<NotificationModel> Notifications { get; set; }
+        public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -94,6 +95,32 @@ namespace Infrastructure_Layer.Database
                       .WithMany()
                       .HasForeignKey(b => b.ServiceId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            builder.Entity<UserRefreshToken>(entity =>
+            {
+                entity.HasKey(rt => rt.Id);
+
+                entity.Property(rt => rt.TokenHash)
+                      .IsRequired()
+                      .HasMaxLength(128);
+
+                entity.Property(rt => rt.UserId)
+                      .IsRequired();
+
+                entity.HasIndex(rt => rt.TokenHash);
+                entity.HasIndex(rt => rt.UserId);
+                entity.HasIndex(rt => new { rt.UserId, rt.RevokedAt });
+
+                entity.HasOne(rt => rt.User)
+                      .WithMany()
+                      .HasForeignKey(rt => rt.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Ignore computed properties
+                entity.Ignore(rt => rt.IsExpired);
+                entity.Ignore(rt => rt.IsRevoked);
+                entity.Ignore(rt => rt.IsActive);
             });
 
             base.OnModelCreating(builder);

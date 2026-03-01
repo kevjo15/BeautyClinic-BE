@@ -65,10 +65,70 @@ Built using Clean Architecture with 4 distinct layers:
 ## 🔒 Security Features
 
 - JWT token authentication
-- Refresh token mechanism
+- Refresh token rotation with reuse detection
+- SHA256-hashed refresh tokens with server-side pepper
+- HttpOnly secure cookies for refresh tokens
 - Password hashing
 - Input validation
 - API endpoint protection
+
+## 🔐 Authentication Flow
+
+The system uses a production-grade JWT authentication with secure refresh token rotation:
+
+### Token Types
+
+| Token | Storage | Lifetime | Purpose |
+|-------|---------|----------|---------|
+| Access Token | Client memory | 15 minutes | API authorization |
+| Refresh Token | HttpOnly cookie | 7 days | Obtain new access tokens |
+
+### Login Flow
+
+1. Client sends credentials to `POST /api/User/login`
+2. Server validates and returns `accessToken` in response body
+3. Server sets `refreshToken` in HttpOnly secure cookie
+4. Client stores access token in memory (not localStorage)
+
+### Token Refresh Flow
+
+1. When access token expires, client calls `POST /api/User/refreshAccessToken`
+2. Server reads refresh token from HttpOnly cookie
+3. Server validates token against database (hashed)
+4. If valid: rotates token (old revoked, new created), returns new access token
+5. Client receives new access token, cookie is updated with new refresh token
+
+### Security Measures
+
+- **Token Rotation**: Each refresh creates a new token and revokes the old one
+- **Reuse Detection**: If a revoked token is used, all user tokens are invalidated
+- **Hashed Storage**: Refresh tokens are SHA256-hashed before database storage
+- **HttpOnly Cookies**: Refresh tokens cannot be accessed by JavaScript (XSS protection)
+- **Secure Flag**: Cookies only sent over HTTPS in production
+
+### Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/User/login` | POST | Authenticate and receive tokens |
+| `/api/User/refreshAccessToken` | POST | Get new access token using refresh cookie |
+| `/api/User/revokeRefreshToken` | POST | Logout - revoke current refresh token |
+| `/api/User/revokeAllTokens` | POST | Revoke all sessions for current user |
+
+### Configuration (appsettings.json)
+
+```json
+{
+  "JwtSettings": {
+    "Secret": "your-secret-key-min-32-chars",
+    "Issuer": "ElsaBeautyClinic",
+    "Audience": "ElsaBeautyClinic",
+    "ExpiryMinutes": 15,
+    "RefreshTokenExpiryDays": 7,
+    "RefreshTokenPepper": "your-secure-pepper"
+  }
+}
+```
 
 ## 🧪 Testing
 
