@@ -1,18 +1,19 @@
+using AutoMapper;
 using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Queries.UserQueries.GetUserName
 {
     public class GetUserNameQueryHandler : IRequestHandler<GetUserNameQuery, UserNameDTO>
     {
         private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 
-        public GetUserNameQueryHandler(IUserRepository userRepository)
+        public GetUserNameQueryHandler(IUserRepository userRepository, IMapper mapper)
         {
             _userRepository = userRepository;
+            _mapper = mapper;
         }
 
         public async Task<UserNameDTO> Handle(GetUserNameQuery request, CancellationToken cancellationToken)
@@ -20,15 +21,9 @@ namespace Application_Layer.Queries.UserQueries.GetUserName
             var user = await _userRepository.FindByIdAsync(request.UserId);
 
             if (user == null)
-            {
                 return null;
-            }
 
-            return new UserNameDTO
-            {
-                FirstName = user.FirstName ?? string.Empty,
-                LastName = user.LastName ?? string.Empty
-            };
+            return _mapper.Map<UserNameDTO>(user);
         }
     }
 }

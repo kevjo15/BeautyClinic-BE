@@ -1,5 +1,4 @@
 using MediatR;
-using AutoMapper;
 using Domain_Layer.Models;
 
 namespace Application_Layer.Commands.CategoryCommands.CreateCategory
@@ -7,12 +6,10 @@ namespace Application_Layer.Commands.CategoryCommands.CreateCategory
     public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, CreateCategoryResult>
     {
         private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
 
-        public CreateCategoryCommandHandler(ICategoryRepository categoryRepository, IMapper mapper)
+        public CreateCategoryCommandHandler(ICategoryRepository categoryRepository)
         {
             _categoryRepository = categoryRepository;
-            _mapper = mapper;
         }
 
         public async Task<CreateCategoryResult> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)

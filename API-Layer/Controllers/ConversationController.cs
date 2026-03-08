@@ -43,7 +43,7 @@ namespace API_Layer.Controllers
         public async Task<IActionResult> CreateConversation([FromBody] CreateConversationCommand command)
         {
             var result = await _mediator.Send(command);
-            return CreatedAtAction(nameof(GetConversationById), new { conversationId = result }, command);
+            return CreatedAtAction(nameof(GetConversationById), new { conversationId = result.Id }, result);
         }
 
         [HttpGet("{conversationId}/GetMessagesForConversation")]

@@ -7,6 +7,7 @@ using Domain_Layer.Models;
 using FakeItEasy;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace Test_Layer.UserTests.UserIntergrationTests
 {
@@ -14,6 +15,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
     public class UserControllerIntegrationLoginTests
     {
         private IMediator _mediator;
+        private IConfiguration _configuration;
         private UserController _userController;
         private IJwtTokenGenerator _jwtTokenGenerator;
 
@@ -21,16 +23,17 @@ namespace Test_Layer.UserTests.UserIntergrationTests
         [SetUp]
         public void SetUp()
         {
-            // Skapa en fake för IMediator och IJwtTokenGenerator
+            // Skapa en fake för IMediator, IConfiguration och IJwtTokenGenerator
             _mediator = A.Fake<IMediator>();
+            _configuration = A.Fake<IConfiguration>();
             _jwtTokenGenerator = A.Fake<IJwtTokenGenerator>();
 
             // Mocka token generation
             A.CallTo(() => _jwtTokenGenerator.GenerateToken(A<UserModel>._))
                 .Returns("fake_token");
 
-            // Skapa en instans av UserController med fake mediator
-            _userController = new UserController(_mediator);
+            // Skapa en instans av UserController med fake mediator och configuration
+            _userController = new UserController(_mediator, _configuration);
 
             // Registrera en användare som används i inloggnings- och andra tester
             var registerUserDTO = new RegisterUserDTO

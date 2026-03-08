@@ -1,22 +1,26 @@
-using MediatR;
-using Domain_Layer.Models;
 using Application.Features.Conversations.Queries;
+using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
+using AutoMapper;
+using MediatR;
 
 namespace Application.Features.Conversations.Handlers
 {
-    public class GetMessagesForConversationQueryHandler : IRequestHandler<GetMessagesForConversationQuery, List<MessageModel>>
+    public class GetMessagesForConversationQueryHandler : IRequestHandler<GetMessagesForConversationQuery, List<MessageDTO>>
     {
         private readonly IConversationRepository _conversationRepository;
+        private readonly IMapper _mapper;
 
-        public GetMessagesForConversationQueryHandler(IConversationRepository conversationRepository)
+        public GetMessagesForConversationQueryHandler(IConversationRepository conversationRepository, IMapper mapper)
         {
             _conversationRepository = conversationRepository;
+            _mapper = mapper;
         }
 
-        public async Task<List<MessageModel>> Handle(GetMessagesForConversationQuery request, CancellationToken cancellationToken)
+        public async Task<List<MessageDTO>> Handle(GetMessagesForConversationQuery request, CancellationToken cancellationToken)
         {
-            return await _conversationRepository.GetMessagesAsync(request.ConversationId); // Implement this method in the repository
+            var messages = await _conversationRepository.GetMessagesAsync(request.ConversationId);
+            return _mapper.Map<List<MessageDTO>>(messages);
         }
     }
 }
