@@ -41,6 +41,13 @@ namespace Application_Layer.AutoMapper
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => false));
             CreateMap<NotificationModel, CreateNotificationResult>();
+
+            // Category
+            CreateMap<CategoryModel, CategoryNameDTO>();
+
+            // Conversation / Message
+            CreateMap<ConversationModel, ConversationDTO>();
+            CreateMap<MessageModel, MessageDTO>();
         }
     }
 }

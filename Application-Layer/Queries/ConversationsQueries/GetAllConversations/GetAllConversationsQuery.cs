@@ -1,8 +1,7 @@
+using Application_Layer.DTOs;
 using MediatR;
-using Domain_Layer.Models;
-using System.Collections.Generic;
 
 namespace Application.Features.Conversations.Queries
 {
-    public class GetAllConversationsQuery : IRequest<List<ConversationModel>> { }
+    public class GetAllConversationsQuery : IRequest<List<ConversationDTO>> { }
 }
