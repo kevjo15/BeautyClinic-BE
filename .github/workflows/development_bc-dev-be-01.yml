@@ -56,6 +56,42 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B99D3EF9FCE94F2CBF40866771E11662 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E2A76CEF67694A9DB7646D08302EC742 }}
 
+      - name: Set up .NET Core for migrations
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install dotnet-ef
+        run: dotnet tool install --global dotnet-ef --version 8.0.8
+
+
+      - name: Validate migration secrets
+        env:
+          AZURE_SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          JWT_SETTINGS_SECRET: ${{ secrets.JWT_SETTINGS_SECRET }}
+          JWT_SETTINGS_REFRESH_TOKEN_PEPPER: ${{ secrets.JWT_SETTINGS_REFRESH_TOKEN_PEPPER }}
+        run: |
+          test -n "$AZURE_SQL_CONNECTION_STRING" || (echo "Missing secret: AZURE_SQL_CONNECTION_STRING" && exit 1)
+          test -n "$JWT_SETTINGS_SECRET" || (echo "Missing secret: JWT_SETTINGS_SECRET" && exit 1)
+          test -n "$JWT_SETTINGS_REFRESH_TOKEN_PEPPER" || (echo "Missing secret: JWT_SETTINGS_REFRESH_TOKEN_PEPPER" && exit 1)
+
+      - name: Apply EF Core migrations
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          JwtSettings__Secret: ${{ secrets.JWT_SETTINGS_SECRET }}
+          JwtSettings__Issuer: ElsaBeautyClinic
+          JwtSettings__Audience: ElsaBeautyClinic
+          JwtSettings__ExpiryMinutes: 15
+          JwtSettings__RefreshTokenExpiryDays: 7
+          JwtSettings__RefreshTokenPepper: ${{ secrets.JWT_SETTINGS_REFRESH_TOKEN_PEPPER }}
+          Storage__UseAzurite: true
+          Storage__ConnectionString: UseDevelopmentStorage=true
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet restore ./API-Layer/API-Layer.csproj
+          dotnet restore ./Infrastructure-Layer/Infrastructure-Layer.csproj
+          dotnet ef database update --project ./Infrastructure-Layer --startup-project ./API-Layer
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -63,4 +99,3 @@ jobs:
           app-name: 'bc-dev-Be-01'
           slot-name: 'Production'
           package: ./.net-app
-          
