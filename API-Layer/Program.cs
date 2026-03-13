@@ -97,7 +97,7 @@ builder.Services.AddCors(options =>
     // CORS-policy för vanliga API-anrop från frontend
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:10000") // Lägg till Azurite-origin
+        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:10000", "https://zealous-moss-037161903.2.azurestaticapps.net") // Lägg till Azurite-origin
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
