@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using API_Layer.Hubs;
 using Application_Layer.Interfaces;
 using API_Layer.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -158,6 +159,12 @@ builder.Services.AddSwaggerGen(c =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ElsaBeautyDbContext>();
+    db.Database.Migrate();
+}
 
 // Seed data
 await app.Services.SeedDataAsync();
