@@ -32,7 +32,6 @@ namespace Application_Layer.Features.Services.Queries.GetAllServicesWithSas
             var services = await _repo.GetAllServicesAsync();
             var serviceDtos = _mapper.Map<List<ServiceDTO>>(services);
 
-            var container = _cfg["Storage:Containers:Services"] ?? "services";
             var lifeHours = int.TryParse(_cfg["Storage:SasHours"], out var h) ? h : 12;
             var ttl = TimeSpan.FromHours(lifeHours);
 
@@ -41,9 +40,10 @@ namespace Application_Layer.Features.Services.Queries.GetAllServicesWithSas
                 var service = services.First(x => x.Id.ToString() == s.Id.ToString());
                 if (!string.IsNullOrWhiteSpace(service.ImageUrl))
                 {
-                    var path = service.ImageUrl;
-                    var (c, blob) = path.Contains('/') ? (path.Split('/')[0], string.Join('/', path.Split('/').Skip(1))) : (container, path);
-                    s.ImageUrl = await _files.GenerateReadSasAsync(c, blob, ttl, ct);
+                    var containerName = "images";
+                    var blobPath = service.ImageUrl;
+
+                    s.ImageUrl = await _files.GenerateReadSasAsync(containerName, blobPath, ttl, ct);
                 }
             }
 
