@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application_Layer.Services
@@ -33,10 +34,15 @@ namespace Application_Layer.Services
             using (var stream = file.OpenReadStream())
             {
                 await blobClient.UploadAsync(stream, true, ct);
-                await blobClient.SetHttpHeadersAsync(new BlobHttpHeaders { ContentType = file.ContentType }, cancellationToken: ct);
+                await blobClient.SetHttpHeadersAsync(
+                    new BlobHttpHeaders { ContentType = file.ContentType },
+                    cancellationToken: ct
+                );
             }
 
             var sasUrl = await GenerateReadSasAsync(container, blobName, sasLifetime, ct);
+
+            // Viktigt: detta sparas i DB
             return ($"{container}/{blobName}", sasUrl);
         }
 
@@ -53,17 +59,10 @@ namespace Application_Layer.Services
                 ExpiresOn = DateTimeOffset.UtcNow.Add(sasLifetime),
                 Protocol = _useAzurite ? SasProtocol.HttpsAndHttp : SasProtocol.Https
             };
+
             builder.SetPermissions(BlobSasPermissions.Read);
 
-            if (blobClient.CanGenerateSasUri)
-            {
-                return blobClient.GenerateSasUri(builder).ToString();
-            }
-
-            var userDelegationKey = await _blobServiceClient.GetUserDelegationKeyAsync(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.Add(sasLifetime), ct);
-            var sasToken = builder.ToSasQueryParameters(userDelegationKey, _blobServiceClient.AccountName).ToString();
-
-            return $"{blobClient.Uri}?{sasToken}";
+            return blobClient.GenerateSasUri(builder).ToString();
         }
     }
 }
