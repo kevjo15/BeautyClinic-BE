@@ -2,7 +2,6 @@ using Application_Layer.Interfaces;
 using Application_Layer.Services;
 using Azure.Communication.Email;
 using Azure.Communication.Sms;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Infrastructure_Layer.DataSeeder;
 using Infrastructure_Layer.Database;
@@ -38,21 +37,11 @@ namespace Infrastructure_Layer
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
-            var useAzurite = configuration.GetValue<bool>("Storage:UseAzurite", false);
-            if (useAzurite)
+            var storageConnectionString = configuration["Storage:ConnectionString"];
+            if (!string.IsNullOrEmpty(storageConnectionString))
             {
-                var conn = configuration["Storage:ConnectionString"] ?? "UseDevelopmentStorage=true";
-                services.AddSingleton(new BlobServiceClient(conn));
+                services.AddSingleton(new BlobServiceClient(storageConnectionString));
                 services.AddScoped<IFileService, FileService>();
-            }
-            else
-            {
-                var account = configuration["Storage:AccountName"];
-                if (!string.IsNullOrEmpty(account))
-                {
-                    services.AddSingleton(new BlobServiceClient(new Uri($"https://{account}.blob.core.windows.net"), new DefaultAzureCredential()));
-                    services.AddScoped<IFileService, FileService>();
-                }
             }
 
             var communicationServicesConnection = configuration["CommunicationServices:ConnectionString"];
