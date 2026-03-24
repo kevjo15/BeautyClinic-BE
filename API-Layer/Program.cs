@@ -188,11 +188,8 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
-// Use CORS before routing
-app.UseCors("SignalRPolicy");
-
 app.MapControllers();
-app.MapHub<ChatHub>("/chatHub");
-app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ChatHub>("/chatHub").RequireCors("SignalRPolicy");
+app.MapHub<NotificationHub>("/notificationHub").RequireCors("SignalRPolicy");
 
 app.Run();
