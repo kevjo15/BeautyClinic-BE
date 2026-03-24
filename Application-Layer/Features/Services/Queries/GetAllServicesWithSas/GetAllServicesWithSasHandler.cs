@@ -5,12 +5,13 @@ using MediatR;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application_Layer.Features.Services.Queries.GetAllServicesWithSas
 {
-    public sealed class GetAllServicesWithSasHandler 
+    public sealed class GetAllServicesWithSasHandler
         : IRequestHandler<GetAllServicesWithSasQuery, IReadOnlyList<ServiceDTO>>
     {
         private readonly IServiceRepository _repo;
@@ -34,24 +35,20 @@ namespace Application_Layer.Features.Services.Queries.GetAllServicesWithSas
             GetAllServicesWithSasQuery request,
             CancellationToken ct)
         {
-            var services = await _repo.GetAllServicesAsync();
+            var services = (await _repo.GetAllServicesAsync()).ToList();
             var serviceDtos = _mapper.Map<List<ServiceDTO>>(services);
 
             var lifeHours = int.TryParse(_cfg["Storage:SasHours"], out var h) ? h : 12;
             var ttl = TimeSpan.FromHours(lifeHours);
-
             var containerName = _cfg["Storage:Containers:Images"] ?? "images";
 
             for (int i = 0; i < serviceDtos.Count; i++)
             {
                 var service = services[i];
-
                 if (!string.IsNullOrWhiteSpace(service.ImageUrl))
                 {
-                    var blobPath = service.ImageUrl;
-
                     serviceDtos[i].ImageUrl =
-                        await _files.GenerateReadSasAsync(containerName, blobPath, ttl, ct);
+                        await _files.GenerateReadSasAsync(containerName, service.ImageUrl, ttl, ct);
                 }
             }
 

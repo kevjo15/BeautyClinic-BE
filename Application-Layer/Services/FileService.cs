@@ -1,3 +1,4 @@
+using Application_Layer.Interfaces;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
@@ -14,13 +15,11 @@ namespace Application_Layer.Services
     {
         private readonly BlobServiceClient _blobServiceClient;
         private readonly IConfiguration _configuration;
-        private readonly bool _useAzurite;
 
         public FileService(IConfiguration configuration, BlobServiceClient blobServiceClient)
         {
             _configuration = configuration;
             _blobServiceClient = blobServiceClient;
-            _useAzurite = _configuration.GetValue<bool>("Storage:UseAzurite", false);
         }
 
         public async Task<(string blobPath, string sasUrl)> UploadAsync(IFormFile file, string container, TimeSpan sasLifetime, CancellationToken ct)
@@ -57,7 +56,7 @@ namespace Application_Layer.Services
                 BlobName = blobPath,
                 Resource = "b",
                 ExpiresOn = DateTimeOffset.UtcNow.Add(sasLifetime),
-                Protocol = _useAzurite ? SasProtocol.HttpsAndHttp : SasProtocol.Https
+                Protocol = SasProtocol.HttpsAndHttp
             };
 
             builder.SetPermissions(BlobSasPermissions.Read);
