@@ -30,17 +30,18 @@ namespace Infrastructure_Layer.DataSeeder
             }
 
             // Seed admin user
-            var adminEmail = "admin@example.com";
+            var adminEmail = "admin@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(adminEmail) == null)
             {
                 var adminUser = new UserModel
                 {
-                    UserName = "admin",
+                    UserName = adminEmail,
                     Email = adminEmail,
-                    FirstName = "Admin",
-                    LastName = "Admin"
+                    FirstName = "Elsa",
+                    LastName = "Admin",
+                    PhoneNumber = "0701234567"
                 };
-                var result = await _userManager.CreateAsync(adminUser, "AdminPassword123!");
+                var result = await _userManager.CreateAsync(adminUser, "Password123!");
 
                 if (result.Succeeded)
                 {
@@ -49,21 +50,42 @@ namespace Infrastructure_Layer.DataSeeder
             }
 
             // Seed employee user
-            var employeeEmail = "kevin.jorgensen123@gmail.com";
+            var employeeEmail = "employee@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(employeeEmail) == null)
             {
                 var employeeUser = new UserModel
                 {
-                    UserName = "kevin96",
+                    UserName = employeeEmail,
                     Email = employeeEmail,
-                    FirstName = "Kevin",
-                    LastName = "Jorgensen"
+                    FirstName = "Emma",
+                    LastName = "Andersson",
+                    PhoneNumber = "0709876543"
                 };
                 var result = await _userManager.CreateAsync(employeeUser, "Password123!");
 
                 if (result.Succeeded)
                 {
                     await _userManager.AddToRoleAsync(employeeUser, "Employee");
+                }
+            }
+
+            // Seed customer user
+            var customerEmail = "customer@elsabeauty.se";
+            if (await _userManager.FindByEmailAsync(customerEmail) == null)
+            {
+                var customerUser = new UserModel
+                {
+                    UserName = customerEmail,
+                    Email = customerEmail,
+                    FirstName = "Karin",
+                    LastName = "Karlsson",
+                    PhoneNumber = "0705555555"
+                };
+                var result = await _userManager.CreateAsync(customerUser, "Password123!");
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(customerUser, "Customer");
                 }
             }
 
