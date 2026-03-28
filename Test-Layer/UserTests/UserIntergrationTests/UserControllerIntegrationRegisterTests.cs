@@ -31,10 +31,10 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Arrange
             var registerUserDTO = new RegisterUserDTO
             {
-                UserName = "testuser",
                 Email = "test@example.com",
                 FirstName = "Test",
                 LastName = "User",
+                PhoneNumber = "0701234567",
                 Password = "Password123!",
                 ConfirmPassword = "Password123!"
             };
@@ -42,7 +42,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             var expectedUser = new UserModel
             {
                 Email = registerUserDTO.Email,
-                UserName = registerUserDTO.UserName,
+                UserName = registerUserDTO.Email,
                 FirstName = registerUserDTO.FirstName,
                 LastName = registerUserDTO.LastName
             };
@@ -73,10 +73,10 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Arrange
             var registerUserDTO = new RegisterUserDTO
             {
-                UserName = "testuser",
                 Email = "invalid-email",
                 FirstName = "Test",
                 LastName = "User",
+                PhoneNumber = "0701234567",
                 Password = "Password123!",
                 ConfirmPassword = "Password123!"
             };

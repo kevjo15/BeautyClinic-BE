@@ -22,6 +22,7 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
             try
             {
                 var user = _mapper.Map<UserModel>(request.NewUser);
+                user.UserName = request.NewUser.Email;
 
                 var result = await _userRepository.RegisterUserAsync(user, request.NewUser.Password);
 

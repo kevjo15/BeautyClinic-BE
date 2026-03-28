@@ -10,9 +10,6 @@ namespace Application_Layer.DTO_s
     public class RegisterUserDTO
     {
         [Required]
-        public string UserName { get; set; } = string.Empty;
-
-        [Required]
         [EmailAddress]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; } = string.Empty;
@@ -31,5 +28,9 @@ namespace Application_Layer.DTO_s
 
         [Required]
         public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [Phone]
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 }

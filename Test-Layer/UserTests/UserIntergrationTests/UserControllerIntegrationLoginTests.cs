@@ -38,18 +38,18 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Registrera en användare som används i inloggnings- och andra tester
             var registerUserDTO = new RegisterUserDTO
             {
-                UserName = "testuser",
                 Email = "test@example.com",
                 FirstName = "Test",
                 LastName = "User",
                 Password = "Password123!",
-                ConfirmPassword = "Password123!"
+                ConfirmPassword = "Password123!",
+                PhoneNumber = "0701234567"
             };
 
             var expectedUser = new UserModel
             {
                 Email = registerUserDTO.Email,
-                UserName = registerUserDTO.UserName,
+                UserName = registerUserDTO.Email,
                 FirstName = registerUserDTO.FirstName,
                 LastName = registerUserDTO.LastName
             };

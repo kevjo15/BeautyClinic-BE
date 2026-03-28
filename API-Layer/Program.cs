@@ -177,6 +177,21 @@ if (app.Environment.IsDevelopment())
 }
 
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (FluentValidation.ValidationException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/json";
+        var errors = ex.Errors.Select(e => e.ErrorMessage).ToList();
+        await context.Response.WriteAsJsonAsync(new { errors });
+    }
+});
+
 app.UseHttpsRedirection();
 
 // Enable serving static files
