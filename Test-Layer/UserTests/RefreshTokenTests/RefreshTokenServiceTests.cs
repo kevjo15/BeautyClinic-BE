@@ -1,7 +1,7 @@
 using Application_Layer.Interfaces;
-using Application_Layer.Services;
 using Domain_Layer.Models;
 using FakeItEasy;
+using Infrastructure_Layer.Identity;
 using Microsoft.Extensions.Configuration;
 
 namespace Test_Layer.UserTests.RefreshTokenTests

@@ -290,18 +290,27 @@ namespace API_Layer.Controllers
 
         private string? GetIpAddress()
         {
-            // Check for forwarded IP first (if behind proxy/load balancer)
-            if (Request.Headers.ContainsKey("X-Forwarded-For"))
+            var request = HttpContext?.Request;
+            if (request == null)
             {
-                return Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Trim();
+                return null;
             }
 
-            return HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+            if (request.Headers.ContainsKey("X-Forwarded-For"))
+            {
+                return request.Headers["X-Forwarded-For"]
+                    .FirstOrDefault()?
+                    .Split(',')
+                    .FirstOrDefault()?
+                    .Trim();
+            }
+
+            return HttpContext?.Connection?.RemoteIpAddress?.MapToIPv4().ToString();
         }
 
         private string? GetUserAgent()
         {
-            return Request.Headers["User-Agent"].FirstOrDefault();
+            return HttpContext?.Request?.Headers["User-Agent"].FirstOrDefault();
         }
 
         #endregion

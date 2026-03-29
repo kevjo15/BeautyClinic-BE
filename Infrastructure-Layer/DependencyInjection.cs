@@ -1,10 +1,11 @@
 using Application_Layer.Interfaces;
-using Application_Layer.Services;
+using Application_Layer.Jwt;
 using Azure.Communication.Email;
 using Azure.Communication.Sms;
 using Azure.Storage.Blobs;
 using Infrastructure_Layer.DataSeeder;
 using Infrastructure_Layer.Database;
+using Infrastructure_Layer.Identity;
 using Infrastructure_Layer.Repositories;
 using Infrastructure_Layer.Repositories.Conversation;
 using Infrastructure_Layer.Repositories.Message;
@@ -13,6 +14,7 @@ using Infrastructure_Layer.Repositories.RefreshToken;
 using Infrastructure_Layer.Repositories.Service;
 using Infrastructure_Layer.Repositories.User;
 using Infrastructure_Layer.Services;
+using Infrastructure_Layer.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,13 +37,19 @@ namespace Infrastructure_Layer
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             var storageConnectionString = configuration["Storage:ConnectionString"];
             if (!string.IsNullOrEmpty(storageConnectionString))
             {
                 services.AddSingleton(new BlobServiceClient(storageConnectionString));
-                services.AddScoped<IFileService, FileService>();
+                services.AddScoped<IFileService, AzureBlobFileService>();
+            }
+            else
+            {
+                services.AddScoped<IFileService, NullFileService>();
             }
 
             var communicationServicesConnection = configuration["CommunicationServices:ConnectionString"];

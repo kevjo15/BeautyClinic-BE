@@ -50,8 +50,10 @@ namespace Application_Layer.Commands.UserCommands.RefreshToken
                     return new RefreshTokenResult(false, "User not found.");
                 }
 
+                var roles = await _userRepository.GetRolesAsync(user);
+
                 // Generate new access token
-                var newAccessToken = await _jwtTokenGenerator.GenerateToken(user);
+                var newAccessToken = await _jwtTokenGenerator.GenerateToken(user.Id, user.Email, roles);
 
                 return new RefreshTokenResult(
                     successful: true,

@@ -1,7 +1,8 @@
 using Application_Layer.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Infrastructure_Layer.Database;
 using Domain_Layer.Models;
+using Infrastructure_Layer.Database;
+using Infrastructure_Layer.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure_Layer.Repositories
 {
@@ -16,11 +17,16 @@ namespace Infrastructure_Layer.Repositories
 
         public async Task<BookingModel> GetByIdAsync(Guid id)
         {
-            return await _context.Bookings
-                .Include(b => b.User)
-                .Include(b => b.Employee)
+            var booking = await _context.Bookings
                 .Include(b => b.Service)
                 .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking != null)
+            {
+                await PopulateUsersAsync(new[] { booking });
+            }
+
+            return booking;
         }
 
         public async Task AddAsync(BookingModel booking)
@@ -44,46 +50,96 @@ namespace Infrastructure_Layer.Repositories
 
         public async Task<List<BookingModel>> GetByUserIdAsync(string userId)
         {
-            return await _context.Bookings
-                .Include(b => b.User)
-                .Include(b => b.Employee)
+            var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .Where(b => b.UserId == userId)
                 .ToListAsync();
+
+            await PopulateUsersAsync(bookings);
+            return bookings;
         }
 
         public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end)
         {
-            return await _context.Bookings
-                .Include(b => b.User)
-                .Include(b => b.Employee)
+            var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .Where(b => (b.StartTime >= start && b.StartTime < end) ||
                            (b.EndTime > start && b.EndTime <= end) ||
                            (b.StartTime <= start && b.EndTime >= end))
                 .ToListAsync();
+
+            await PopulateUsersAsync(bookings);
+            return bookings;
         }
 
         public async Task<List<BookingModel>> GetByEmployeeAndRangeAsync(string employeeId, DateTime from, DateTime to)
         {
-            return await _context.Bookings
-                .Include(b => b.User)
-                .Include(b => b.Employee)
+            var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .Where(b => b.EmployeeId == employeeId &&
                     ((b.StartTime >= from && b.StartTime < to) ||
                      (b.EndTime > from && b.EndTime <= to) ||
                      (b.StartTime <= from && b.EndTime >= to)))
                 .ToListAsync();
+
+            await PopulateUsersAsync(bookings);
+            return bookings;
         }
 
         public async Task<List<BookingModel>> GetAllAsync()
         {
-            return await _context.Bookings
-                .Include(b => b.User)
-                .Include(b => b.Employee)
+            var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .ToListAsync();
+
+            await PopulateUsersAsync(bookings);
+            return bookings;
+        }
+
+        private async Task PopulateUsersAsync(IEnumerable<BookingModel> bookings)
+        {
+            var ids = bookings
+                .SelectMany(booking => new[] { booking.UserId, booking.EmployeeId })
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+            {
+                return;
+            }
+
+            var users = await _context.Users
+                .Where(user => ids.Contains(user.Id))
+                .ToDictionaryAsync(user => user.Id, MapToDomainUser);
+
+            foreach (var booking in bookings)
+            {
+                if (users.TryGetValue(booking.UserId, out var user))
+                {
+                    booking.User = user;
+                }
+
+                if (!string.IsNullOrWhiteSpace(booking.EmployeeId) &&
+                    users.TryGetValue(booking.EmployeeId, out var employee))
+                {
+                    booking.Employee = employee;
+                }
+            }
+        }
+
+        private static UserModel MapToDomainUser(ApplicationUser user)
+        {
+            return new UserModel
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                IsDeleted = user.IsDeleted
+            };
         }
     }
 }

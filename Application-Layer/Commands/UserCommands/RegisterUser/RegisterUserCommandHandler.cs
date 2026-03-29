@@ -26,9 +26,9 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
 
                 var result = await _userRepository.RegisterUserAsync(user, request.NewUser.Password);
 
-                if (!result.Succeeded)
+                if (!result.Successful)
                 {
-                    return new RegisterResult(false, null, result.Errors.Select(e => e.Description).ToList());
+                    return new RegisterResult(false, null, new List<string> { result.Error ?? "Failed to register user." });
                 }
 
                 return new RegisterResult(true, user);

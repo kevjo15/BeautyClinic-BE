@@ -9,14 +9,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application_Layer.Queries.ServiceQueries.GetAllServices;
 using Application_Layer.DTO_s;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
-using Application_Layer.Services;
 using Microsoft.AspNetCore.Http;
 using Application_Layer.Features.Services.Commands.UploadServiceImage;
 using Application_Layer.Features.Services.Queries.GetAllServicesWithSas;
 using System.Threading;
+using System.IO;
 
 namespace API_Layer.Controllers
 {
@@ -102,7 +101,17 @@ namespace API_Layer.Controllers
         public async Task<ActionResult<UploadServiceImageResult>> UploadImage([FromRoute] Guid serviceId, IFormFile file, CancellationToken ct)
         {
             if (file is null) return BadRequest("file is required");
-            var res = await _mediator.Send(new UploadServiceImageCommand(serviceId, file), ct);
+
+            await using var stream = file.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream, ct);
+
+            var upload = new FileUploadRequest(
+                file.FileName,
+                file.ContentType ?? "application/octet-stream",
+                memoryStream.ToArray());
+
+            var res = await _mediator.Send(new UploadServiceImageCommand(serviceId, upload), ct);
             return Ok(res);
         }
     }

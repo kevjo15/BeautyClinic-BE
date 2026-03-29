@@ -42,8 +42,10 @@ namespace Application_Layer.Commands.UserCommands.Login
                     request.IpAddress,
                     request.UserAgent);
 
+                var roles = await _userRepository.GetRolesAsync(existingUser);
+
                 // Generate access token
-                var accessToken = await _jwtTokenGenerator.GenerateToken(existingUser);
+                var accessToken = await _jwtTokenGenerator.GenerateToken(existingUser.Id, existingUser.Email, roles);
 
                 return CreateLoginResult(true, null, accessToken, rawRefreshToken);
             }

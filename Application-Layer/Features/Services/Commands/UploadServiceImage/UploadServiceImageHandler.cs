@@ -1,11 +1,5 @@
 using Application_Layer.Interfaces;
-using Application_Layer.Services;
 using MediatR;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application_Layer.Features.Services.Commands.UploadServiceImage
 {
@@ -13,13 +7,11 @@ namespace Application_Layer.Features.Services.Commands.UploadServiceImage
     {
         private readonly IServiceRepository _repo;
         private readonly IFileService _files;
-        private readonly IConfiguration _cfg;
 
-        public UploadServiceImageHandler(IServiceRepository repo, IFileService files, IConfiguration cfg)
+        public UploadServiceImageHandler(IServiceRepository repo, IFileService files)
         {
             _repo = repo;
             _files = files;
-            _cfg = cfg;
         }
 
         public async Task<UploadServiceImageResult> Handle(UploadServiceImageCommand request, CancellationToken ct)
@@ -27,11 +19,7 @@ namespace Application_Layer.Features.Services.Commands.UploadServiceImage
             var service = await _repo.GetServiceByIdAsync(request.ServiceId)
                 ?? throw new KeyNotFoundException("Service not found");
 
-            var container = _cfg["Storage:Containers:Services"] ?? "services";
-            var lifeHours = int.TryParse(_cfg["Storage:SasHours"], out var h) ? h : 12;
-            var ttl = TimeSpan.FromHours(lifeHours);
-
-            var (blobPath, sas) = await _files.UploadAsync(request.File, container, ttl, ct);
+            var (blobPath, sas) = await _files.UploadServiceImageAsync(request.File, ct);
 
             service.ImageUrl = blobPath;
             await _repo.UpdateServiceAsync(service);
