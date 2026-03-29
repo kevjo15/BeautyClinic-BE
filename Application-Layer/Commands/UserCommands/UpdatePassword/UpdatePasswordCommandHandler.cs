@@ -26,7 +26,7 @@ namespace Application_Layer.Commands.UserCommands.UpdatePassword
             }
 
             var result = await _userRepository.UpdatePasswordAsync(user, request.UpdatePasswordDTO.NewPassword);
-            return result.Succeeded;
+            return result.Successful;
         }
     }
 }

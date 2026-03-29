@@ -53,7 +53,9 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             A.CallTo(() => _userRepository.FindByEmailAsync(loginUserDTO.Email)).Returns(userModel);
             A.CallTo(() => _userRepository.CheckPasswordAsync(userModel, loginUserDTO.Password)).Returns(true);
-            A.CallTo(() => _jwtTokenGenerator.GenerateToken(userModel)).Returns("valid_access_token");
+            A.CallTo(() => _userRepository.GetRolesAsync(userModel)).Returns(new List<string> { "Customer" });
+            A.CallTo(() => _jwtTokenGenerator.GenerateToken(userModel.Id, userModel.Email, A<IEnumerable<string>>._))
+                .Returns("valid_access_token");
             A.CallTo(() => _refreshTokenService.GenerateRefreshTokenAsync(userModel.Id, A<string>._, A<string>._))
                 .Returns(("raw_refresh_token", refreshTokenEntity));
 

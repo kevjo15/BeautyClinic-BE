@@ -2,7 +2,6 @@
 using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTO_s;
-using Application_Layer.Jwt;
 using Domain_Layer.Models;
 using FakeItEasy;
 using MediatR;
@@ -17,20 +16,14 @@ namespace Test_Layer.UserTests.UserIntergrationTests
         private IMediator _mediator;
         private IConfiguration _configuration;
         private UserController _userController;
-        private IJwtTokenGenerator _jwtTokenGenerator;
 
 
         [SetUp]
         public void SetUp()
         {
-            // Skapa en fake för IMediator, IConfiguration och IJwtTokenGenerator
+            // Skapa en fake för IMediator och IConfiguration
             _mediator = A.Fake<IMediator>();
             _configuration = A.Fake<IConfiguration>();
-            _jwtTokenGenerator = A.Fake<IJwtTokenGenerator>();
-
-            // Mocka token generation
-            A.CallTo(() => _jwtTokenGenerator.GenerateToken(A<UserModel>._))
-                .Returns("fake_token");
 
             // Skapa en instans av UserController med fake mediator och configuration
             _userController = new UserController(_mediator, _configuration);
@@ -94,8 +87,9 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             Assert.NotNull(actionResult?.Value, "ActionResult.Value is null.");
             Assert.IsInstanceOf<OkObjectResult>(actionResult);
 
-            // Istället för att hantera resultatet som en IDictionary, konvertera det direkt till en anonym typ
-            var resultObject = actionResult?.Value.GetType().GetProperty("token")?.GetValue(actionResult.Value, null);
+            var resultProperty = actionResult?.Value?.GetType().GetProperty("accessToken");
+            Assert.NotNull(resultProperty, "accessToken property is missing.");
+            var resultObject = resultProperty!.GetValue(actionResult!.Value, null);
 
             // Kontrollera att token finns i resultatet
             Assert.NotNull(resultObject, "Token is null.");
@@ -103,7 +97,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Hämta token från resultatet och kontrollera att den matchar det förväntade värdet
             Assert.That(resultObject.ToString(), Is.EqualTo(expectedToken));
 
-            Assert.That(actionResult.StatusCode, Is.EqualTo(200), "Expected status code 200 for successful login.");
+            Assert.That(actionResult!.StatusCode, Is.EqualTo(200), "Expected status code 200 for successful login.");
             Assert.That(loginResult.Successful, Is.True, "Expected login to be successful.");
             Assert.That(loginResult.Error, Is.Null, "Expected no error message for successful login.");
         }
@@ -138,11 +132,12 @@ namespace Test_Layer.UserTests.UserIntergrationTests
 
             // Assert
             Assert.IsInstanceOf<BadRequestObjectResult>(actionResult);
+            Assert.NotNull(actionResult, "Expected BadRequestObjectResult.");
 
             var errorMessage = actionResult?.Value as string;
             Assert.NotNull(errorMessage);
             Assert.That(errorMessage, Is.EqualTo("Invalid credentials"));
-            Assert.That(actionResult.StatusCode, Is.EqualTo(400), "Expected status code 400 for failed login.");
+            Assert.That(actionResult!.StatusCode, Is.EqualTo(400), "Expected status code 400 for failed login.");
             Assert.That(loginResult.Successful, Is.False, "Expected login to fail.");
         }
 

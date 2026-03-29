@@ -28,9 +28,9 @@ namespace Application_Layer.Commands.UserCommands.Update
 
             var updateResult = await _userRepository.UpdateUserAsync(user);
 
-            if (!updateResult.Succeeded)
+            if (!updateResult.Successful)
             {
-                return new UpdateUserProfileResult(false, null, updateResult.Errors.Select(e => e.Description).ToList());
+                return new UpdateUserProfileResult(false, null, new List<string> { updateResult.Error ?? "Failed to update user profile." });
             }
             var updatedProfile = _mapper.Map<UpdateUserProfileDTO>(user);
             return new UpdateUserProfileResult(true, updatedProfile);

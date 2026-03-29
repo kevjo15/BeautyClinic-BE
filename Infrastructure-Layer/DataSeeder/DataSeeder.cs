@@ -1,5 +1,6 @@
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
+using Infrastructure_Layer.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure_Layer.DataSeeder
@@ -7,10 +8,10 @@ namespace Infrastructure_Layer.DataSeeder
     public class DataSeeder
     {
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<UserModel> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ElsaBeautyDbContext _context;
 
-        public DataSeeder(RoleManager<IdentityRole> roleManager, UserManager<UserModel> userManager, ElsaBeautyDbContext context)
+        public DataSeeder(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, ElsaBeautyDbContext context)
         {
             _roleManager = roleManager;
             _userManager = userManager;
@@ -19,7 +20,6 @@ namespace Infrastructure_Layer.DataSeeder
 
         public async Task SeedAsync()
         {
-            // Seed roles
             var roles = new[] { "Admin", "Customer", "Employee" };
             foreach (var role in roles)
             {
@@ -29,11 +29,10 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed admin user
             var adminEmail = "admin@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(adminEmail) == null)
             {
-                var adminUser = new UserModel
+                var adminUser = new ApplicationUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
@@ -49,11 +48,10 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed employee user
             var employeeEmail = "employee@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(employeeEmail) == null)
             {
-                var employeeUser = new UserModel
+                var employeeUser = new ApplicationUser
                 {
                     UserName = employeeEmail,
                     Email = employeeEmail,
@@ -69,11 +67,10 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed customer user
             var customerEmail = "customer@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(customerEmail) == null)
             {
-                var customerUser = new UserModel
+                var customerUser = new ApplicationUser
                 {
                     UserName = customerEmail,
                     Email = customerEmail,
@@ -89,7 +86,6 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed categories and services
             if (!_context.Categories.Any())
             {
                 var categories = new List<CategoryModel>

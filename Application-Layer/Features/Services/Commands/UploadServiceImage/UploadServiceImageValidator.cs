@@ -8,6 +8,8 @@ namespace Application_Layer.Features.Services.Commands.UploadServiceImage
         {
             RuleFor(x => x.ServiceId).NotEmpty();
             RuleFor(x => x.File).NotNull();
+            RuleFor(x => x.File.Content).NotNull();
+            RuleFor(x => x.File.Content.Length).GreaterThan(0);
         }
     }
 }

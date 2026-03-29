@@ -2,9 +2,9 @@
 using Application_Layer.DTO_s;
 using Application_Layer.Interfaces;
 using AutoMapper;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
-using Microsoft.AspNetCore.Identity;
 
 namespace Test_Layer.UserTests.UserUnitTests
 {
@@ -47,10 +47,8 @@ namespace Test_Layer.UserTests.UserUnitTests
             };
             A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
 
-            // Returnera ett lyckat IdentityResult
-            var identityResult = IdentityResult.Success;
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
-                .Returns(Task.FromResult(identityResult));
+                .Returns(Task.FromResult(OperationResult.Success()));
 
             // Act
             var result = await _handler.Handle(command, default);
@@ -81,10 +79,8 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
 
-            // Simulera att användarregistreringen misslyckas och returnera IdentityResult med fel
-            var identityResult = IdentityResult.Failed(new IdentityError { Description = "User already exists" });
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
-                .Returns(Task.FromResult(identityResult));
+                .Returns(Task.FromResult(OperationResult.Failure("User already exists")));
 
             // Act
             var result = await _handler.Handle(command, default);

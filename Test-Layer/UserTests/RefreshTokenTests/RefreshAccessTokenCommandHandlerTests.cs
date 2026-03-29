@@ -54,7 +54,9 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             A.CallTo(() => _refreshTokenService.RotateRefreshTokenAsync(oldRefreshToken, "127.0.0.1", "Test-Agent"))
                 .Returns((newRefreshToken, newTokenEntity));
             A.CallTo(() => _userRepository.FindByIdAsync(userId)).Returns(user);
-            A.CallTo(() => _jwtTokenGenerator.GenerateToken(user)).Returns("new_access_token");
+            A.CallTo(() => _userRepository.GetRolesAsync(user)).Returns(new List<string> { "Customer" });
+            A.CallTo(() => _jwtTokenGenerator.GenerateToken(user.Id, user.Email, A<IEnumerable<string>>._))
+                .Returns("new_access_token");
 
             // Act
             var result = await _handler.Handle(command, default);
