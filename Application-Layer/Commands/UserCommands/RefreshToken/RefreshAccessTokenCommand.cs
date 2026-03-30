@@ -1,8 +1,10 @@
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.RefreshToken
 {
-    public class RefreshAccessTokenCommand : IRequest<RefreshTokenResult>
+    public class RefreshAccessTokenCommand : IRequest<OperationResult<AuthTokenPairDTO>>
     {
         public string RefreshToken { get; }
         public string? IpAddress { get; }

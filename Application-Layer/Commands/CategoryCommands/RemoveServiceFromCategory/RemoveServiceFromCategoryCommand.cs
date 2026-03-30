@@ -1,8 +1,9 @@
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.CategoryCommands.RemoveServiceFromCategory
 {
-    public class RemoveServiceFromCategoryCommand : IRequest<RemoveServiceFromCategoryResult>
+    public class RemoveServiceFromCategoryCommand : IRequest<OperationResult>
     {
         public Guid CategoryId { get; }
         public Guid ServiceId { get; }

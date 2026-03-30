@@ -16,9 +16,9 @@ using System.Security.Claims;
 
 namespace API_Layer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : BaseApiController
     {
         private readonly IMediator _mediator;
         private readonly IConfiguration _configuration;
@@ -31,21 +31,15 @@ namespace API_Layer.Controllers
         }
 
         [AllowAnonymous]
-        [HttpPost("register")]
+        [HttpPost("auth/register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDTO registerUserDTO)
         {
             var result = await _mediator.Send(new RegisterUserCommand(registerUserDTO));
-
-            if (!result.Success)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok(result.CreatedUser);
+            return HandleResult(result);
         }
 
         [AllowAnonymous]
-        [HttpPost("login")]
+        [HttpPost("auth/login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDTO)
         {
             var ipAddress = GetIpAddress();
@@ -60,57 +54,43 @@ namespace API_Layer.Controllers
             }
 
             // Set refresh token in HttpOnly cookie
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data?.RefreshToken))
             {
-                SetRefreshTokenCookie(result.RefreshToken);
+                SetRefreshTokenCookie(result.Data.RefreshToken);
             }
 
             // Return only the access token in the response body
-            return Ok(new { accessToken = result.Token });
+            return Ok(new { accessToken = result.Data!.AccessToken });
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("{id}")]
+        [HttpGet("users/{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _mediator.Send(new GetUserByIdQuery(id));
-
-            if (user != null)
-            {
-                return Ok(user);
-            }
-
-            return BadRequest($"User with ID {id} was not found.");
+            return user is null ? NotFound($"User with ID {id} was not found.") : Ok(user);
         }
 
         [Authorize]
-        [HttpPost("me/update-profile")]
+        [HttpPut("me/profile")]
         public async Task<IActionResult> UpdateUserProfile([FromBody] UpdateUserProfileDTO updateUserProfileDTO)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized("User is not logged in.");
 
-            if (userId == null)
-            {
-                return Unauthorized("User is not logged in.");
-            }
             var result = await _mediator.Send(new UpdateUserProfileCommand(userId, updateUserProfileDTO));
-            if (!result.Success)
-            {
-                return BadRequest(result.Errors);
-            }
-            return Ok(result.UpdatedUserProfile);
+            return HandleResult(result);
         }
 
         [Authorize]
         [Authorize(Roles = "Admin")]
-        [HttpGet("admin-only")]
+        [HttpGet("users/admin-only")]
         public IActionResult AdminOnly()
         {
             return Ok("This is an Admin-only area.");
         }
 
         [AllowAnonymous]
-        [HttpPost("refreshAccessToken")]
+        [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken()
         {
             // Read refresh token from HttpOnly cookie
@@ -135,20 +115,20 @@ namespace API_Layer.Controllers
             }
 
             // Set the new refresh token in HttpOnly cookie (rotation)
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data?.RefreshToken))
             {
-                SetRefreshTokenCookie(result.RefreshToken);
+                SetRefreshTokenCookie(result.Data.RefreshToken);
             }
 
-            return Ok(new { accessToken = result.AccessToken });
+            return Ok(new { accessToken = result.Data!.AccessToken });
         }
 
         [Authorize]
-        [HttpPost("revokeRefreshToken")]
+        [HttpPost("logout")]
         public async Task<IActionResult> RevokeRefreshToken()
         {
             var refreshToken = Request.Cookies[RefreshTokenCookieName];
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = CurrentUserId;
             var ipAddress = GetIpAddress();
 
             var command = new RevokeRefreshTokenCommand(
@@ -162,20 +142,14 @@ namespace API_Layer.Controllers
             // Always clear the cookie on logout
             ClearRefreshTokenCookie();
 
-            if (!result)
-            {
-                return BadRequest("Failed to revoke refresh token.");
-            }
-
-            return Ok(new { message = "Logged out successfully." });
+            return HandleResult(result, () => Ok(new { message = "Logged out successfully." }));
         }
 
         [Authorize]
-        [HttpPost("revokeAllTokens")]
+        [HttpDelete("sessions")]
         public async Task<IActionResult> RevokeAllTokens()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var ipAddress = GetIpAddress();
 
@@ -190,38 +164,28 @@ namespace API_Layer.Controllers
             // Clear the cookie
             ClearRefreshTokenCookie();
 
-            if (!result)
-            {
-                return BadRequest("Failed to revoke tokens.");
-            }
-
-            return Ok(new { message = "All sessions have been terminated." });
+            return HandleResult(result, () => Ok(new { message = "All sessions have been terminated." }));
         }
 
         [Authorize]
-        [HttpPost("me/update-password")]
+        [HttpPut("me/password")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDTO updatePasswordDTO)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var command = new UpdatePasswordCommand(userId, updatePasswordDTO);
             var result = await _mediator.Send(command);
-
-            if (!result) return BadRequest("Failed to update password.");
-
-            return Ok("Password updated successfully.");
+            return HandleResult(result, () => Ok("Password updated successfully."));
         }
 
         [Authorize]
         [HttpGet("me")]
         public IActionResult GetUser()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
-            if (userId == null) return Unauthorized();
+            var email = GetClaimValue(ClaimTypes.Email);
+            var role = GetClaimValue(ClaimTypes.Role);
 
             return Ok(new { userId, email, role });
         }
@@ -230,8 +194,7 @@ namespace API_Layer.Controllers
         [HttpGet("me/name")]
         public async Task<IActionResult> GetUserName()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null) return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var userNameDto = await _mediator.Send(new GetUserNameQuery(userId));
             if (userNameDto == null) return NotFound($"User with ID {userId} was not found.");
@@ -240,7 +203,7 @@ namespace API_Layer.Controllers
         }
 
         [Authorize(Roles = "Admin,Employee")]
-        [HttpGet("employees")]
+        [HttpGet("users/employees")]
         public async Task<IActionResult> GetEmployees()
         {
             var employees = await _mediator.Send(new GetEmployeesQuery());
@@ -263,7 +226,7 @@ namespace API_Layer.Controllers
                 Secure = isProduction, // Only require HTTPS in production
                 SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
                 Expires = DateTime.UtcNow.AddDays(refreshTokenDays),
-                Path = "/api/User" // Restrict cookie to auth endpoints
+                Path = "/api/auth" // Restrict cookie to auth endpoints
             };
 
             Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
@@ -282,7 +245,7 @@ namespace API_Layer.Controllers
                 Secure = isProduction,
                 SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
                 Expires = DateTime.UtcNow.AddDays(-1),
-                Path = "/api/User"
+                Path = "/api/auth"
             };
 
             Response.Cookies.Append(RefreshTokenCookieName, "", cookieOptions);

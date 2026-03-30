@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 namespace API_Layer.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/notifications")]
     [ApiController]
-    public class NotificationController : ControllerBase
+    public class NotificationController : BaseApiController
     {
         private readonly IMediator _mediator;
 
@@ -25,10 +25,7 @@ namespace API_Layer.Controllers
         [HttpGet]
         public async Task<ActionResult<List<NotificationDTO>>> GetUserNotifications()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var query = new GetUserNotificationsQuery { UserId = userId };
             var notifications = await _mediator.Send(query);
@@ -36,13 +33,10 @@ namespace API_Layer.Controllers
             return Ok(notifications);
         }
 
-        [HttpPut("{id}/read")]
+        [HttpPatch("{id}/read")]
         public async Task<IActionResult> MarkNotificationAsRead(Guid id)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var command = new MarkNotificationAsReadCommand 
             { 
@@ -50,24 +44,14 @@ namespace API_Layer.Controllers
                 UserId = userId 
             };
 
-            try
-            {
-                await _mediator.Send(command);
-                return Ok();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
+            var result = await _mediator.Send(command);
+            return HandleResult(result, () => Ok(), error => NotFound(error));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNotification(Guid id)
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var command = new DeleteNotificationCommand 
             { 
@@ -75,15 +59,8 @@ namespace API_Layer.Controllers
                 UserId = userId 
             };
 
-            try
-            {
-                await _mediator.Send(command);
-                return Ok();
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
+            var result = await _mediator.Send(command);
+            return HandleResult(result, () => Ok(), error => NotFound(error));
         }
     }
 }

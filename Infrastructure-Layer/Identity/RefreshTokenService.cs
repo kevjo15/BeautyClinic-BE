@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using Microsoft.Extensions.Configuration;
 
@@ -49,11 +51,11 @@ public sealed class RefreshTokenService : IRefreshTokenService
         return (rawToken, tokenEntity);
     }
 
-    public async Task<(bool IsValid, UserRefreshToken? Token, string? Error)> ValidateRefreshTokenAsync(string rawToken)
+    public async Task<OperationResult<UserRefreshToken>> ValidateRefreshTokenAsync(string rawToken)
     {
         if (string.IsNullOrWhiteSpace(rawToken))
         {
-            return (false, null, "Refresh token is required.");
+            return OperationResult<UserRefreshToken>.Failure("Refresh token is required.");
         }
 
         var tokenHash = HashToken(rawToken);
@@ -61,7 +63,7 @@ public sealed class RefreshTokenService : IRefreshTokenService
 
         if (token == null)
         {
-            return (false, null, "Invalid refresh token.");
+            return OperationResult<UserRefreshToken>.Failure("Invalid refresh token.");
         }
 
         if (token.IsRevoked)
@@ -70,27 +72,31 @@ public sealed class RefreshTokenService : IRefreshTokenService
                 tokenHash,
                 reason: "Token reuse detected - potential token theft");
 
-            return (false, null, "Token has been revoked. All sessions have been terminated for security.");
+            return OperationResult<UserRefreshToken>.Failure(
+                "Token has been revoked. All sessions have been terminated for security.");
         }
 
         if (token.IsExpired)
         {
-            return (false, null, "Refresh token has expired.");
+            return OperationResult<UserRefreshToken>.Failure("Refresh token has expired.");
         }
 
-        return (true, token, null);
+        return OperationResult<UserRefreshToken>.Success(token);
     }
 
-    public async Task<(string RawToken, UserRefreshToken TokenEntity)?> RotateRefreshTokenAsync(
+    public async Task<OperationResult<RefreshTokenRotationResultDTO>> RotateRefreshTokenAsync(
         string oldRawToken,
         string? ipAddress = null,
         string? userAgent = null)
     {
-        var (isValid, oldToken, _) = await ValidateRefreshTokenAsync(oldRawToken);
-        if (!isValid || oldToken == null)
+        var validationResult = await ValidateRefreshTokenAsync(oldRawToken);
+        if (!validationResult.Successful || validationResult.Data == null)
         {
-            return null;
+            return OperationResult<RefreshTokenRotationResultDTO>.Failure(
+                validationResult.Error ?? "Invalid or expired refresh token.");
         }
+
+        var oldToken = validationResult.Data;
 
         var (newRawToken, newTokenEntity) = await GenerateRefreshTokenAsync(
             oldToken.UserId,
@@ -103,17 +109,18 @@ public sealed class RefreshTokenService : IRefreshTokenService
         oldToken.RevokedReason = "Rotated - replaced by new token";
 
         await _refreshTokenRepository.UpdateAsync(oldToken);
-        return (newRawToken, newTokenEntity);
+        return OperationResult<RefreshTokenRotationResultDTO>.Success(
+            new RefreshTokenRotationResultDTO(newRawToken, newTokenEntity));
     }
 
-    public async Task<bool> RevokeRefreshTokenAsync(
+    public async Task<OperationResult> RevokeRefreshTokenAsync(
         string rawToken,
         string? ipAddress = null,
         string? reason = null)
     {
         if (string.IsNullOrWhiteSpace(rawToken))
         {
-            return false;
+            return OperationResult.Failure("Refresh token is required.");
         }
 
         var tokenHash = HashToken(rawToken);
@@ -121,7 +128,7 @@ public sealed class RefreshTokenService : IRefreshTokenService
 
         if (token == null || token.IsRevoked)
         {
-            return false;
+            return OperationResult.Failure("Refresh token not found or already revoked.");
         }
 
         token.RevokedAt = DateTime.UtcNow;
@@ -129,7 +136,7 @@ public sealed class RefreshTokenService : IRefreshTokenService
         token.RevokedReason = reason ?? "User logout";
 
         await _refreshTokenRepository.UpdateAsync(token);
-        return true;
+        return OperationResult.Success();
     }
 
     public Task RevokeAllUserTokensAsync(

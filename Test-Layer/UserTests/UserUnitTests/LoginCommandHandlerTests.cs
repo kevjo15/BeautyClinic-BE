@@ -1,5 +1,6 @@
 using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
 using Domain_Layer.Models;
@@ -64,8 +65,8 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             // Assert
             Assert.IsTrue(result.Successful);
-            Assert.That(result.Token, Is.EqualTo("valid_access_token"));
-            Assert.That(result.RefreshToken, Is.EqualTo("raw_refresh_token"));
+            Assert.That(result.Data?.AccessToken, Is.EqualTo("valid_access_token"));
+            Assert.That(result.Data?.RefreshToken, Is.EqualTo("raw_refresh_token"));
 
             // Verify refresh token was created
             A.CallTo(() => _refreshTokenService.GenerateRefreshTokenAsync(userModel.Id, A<string>._, A<string>._))
@@ -84,7 +85,7 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             var command = new LoginCommand(loginUserDTO);
 
-            A.CallTo(() => _userRepository.FindByEmailAsync(loginUserDTO.Email)).Returns((UserModel)null);
+            A.CallTo(() => _userRepository.FindByEmailAsync(loginUserDTO.Email)).Returns((UserModel?)null);
 
             // Act
             var result = await _handler.Handle(command, default);

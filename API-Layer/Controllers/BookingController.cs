@@ -10,14 +10,13 @@ using Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots;
 using Application_Layer.Queries.BookingQueries.GetAllBookings;
 using Application_Layer.Queries.BookingQueries.GetEmployeeBookings;
 using Application_Layer.DTOs;
-using System.Security.Claims;
 
 namespace API_Layer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/bookings")]
     [ApiController]
     [Authorize]
-    public class BookingController : ControllerBase
+    public class BookingController : BaseApiController
     {
         private readonly IMediator _mediator;
 
@@ -26,100 +25,58 @@ namespace API_Layer.Controllers
             _mediator = mediator;
         }
 
-        [HttpPost("CreateBooking")]
+        [HttpPost]
         public async Task<ActionResult<BookingDTO>> CreateBooking([FromBody] CreateBookingDTO createDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             createDto.UserId = userId;
             var command = new CreateBookingCommand(createDto);
             var result = await _mediator.Send(command);
-
-            if (!result.IsSuccess)
-            {
-                return BadRequest(result.Message);
-            }
-
-            return Ok(result.Booking);
+            return HandleResult(result);
         }
 
-        [HttpGet("GetBookingByBookingId/{id}")]
+        [HttpGet("{id}")]
         public async Task<ActionResult<BookingDTO>> GetBookingById(Guid id)
         {
-            var query = new GetBookingByIdQuery(id);
-            var booking = await _mediator.Send(query);
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
-            // Verify the user owns this booking or is an employee
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (booking.UserId != userId && !User.IsInRole("Employee"))
-            {
-                return Forbid();
-            }
-
-            return Ok(booking);
+            var query = new GetBookingByIdQuery(id, userId, User.IsInRole("Employee"));
+            var result = await _mediator.Send(query);
+            return HandleResult(result);
         }
 
-        [HttpGet("GetBookingsByUserId/MyBookings")]
+        [HttpGet("me")]
         public async Task<ActionResult<List<BookingDTO>>> GetBookingsByUserId()
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
             var query = new GetBookingsByUserIdQuery(userId);
             var bookings = await _mediator.Send(query);
             return Ok(bookings);
         }
 
-        [HttpPut("UpdateBookingById/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBooking(Guid id, [FromBody] UpdateBookingDTO updateDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
-            // Verify the user owns this booking or is an employee
-            var booking = await _mediator.Send(new GetBookingByIdQuery(id));
-            if (booking.UserId != userId && !User.IsInRole("Employee"))
-            {
-                return Forbid();
-            }
-
-            var command = new UpdateBookingCommand(id, updateDto);
-            await _mediator.Send(command);
-            return NoContent();
+            var command = new UpdateBookingCommand(id, userId, User.IsInRole("Employee"), updateDto);
+            var result = await _mediator.Send(command);
+            return HandleResult(result);
         }
 
-        [HttpDelete("CancelBooking/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> CancelBooking(Guid id)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
-            // Verify the user owns this booking or is an employee
-            var booking = await _mediator.Send(new GetBookingByIdQuery(id));
-            if (booking.UserId != userId && !User.IsInRole("Employee"))
-            {
-                return Forbid();
-            }
-
-            var command = new CancelBookingCommand(id);
-            await _mediator.Send(command);
-            return NoContent();
+            var command = new CancelBookingCommand(id, userId, User.IsInRole("Employee"));
+            var result = await _mediator.Send(command);
+            return HandleResult(result);
         }
 
-        [HttpGet("available-time-slots")]
+        [HttpGet("availability")]
         [AllowAnonymous]
         public async Task<ActionResult<List<DateTime>>> GetAvailableTimeSlots([FromQuery] Guid serviceId, [FromQuery] DateTime date)
         {
@@ -128,7 +85,7 @@ namespace API_Layer.Controllers
             return Ok(timeSlots);
         }
 
-        [HttpGet("GetBookingsByUserIdForEmployee/{userId}")]
+        [HttpGet("user/{userId}")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<List<BookingDTO>>> GetBookingsByUserIdForEmployee(string userId)
         {
@@ -137,7 +94,7 @@ namespace API_Layer.Controllers
             return Ok(bookings);
         }
 
-        [HttpGet("GetAllBookings")]
+        [HttpGet]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<List<BookingDTO>>> GetAllBookings()
         {
@@ -146,7 +103,7 @@ namespace API_Layer.Controllers
             return Ok(bookings);
         }
 
-        [HttpPut("AssignEmployee/{id}")]
+        [HttpPut("{id}/employee")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<BookingDTO>> AssignEmployee(Guid id, [FromBody] AssignEmployeeRequest request)
         {
@@ -161,19 +118,15 @@ namespace API_Layer.Controllers
                 EmployeeId = request.EmployeeId
             };
 
-            var updated = await _mediator.Send(command);
-            return Ok(updated);
+            var result = await _mediator.Send(command);
+            return HandleResult(result, onFailure: error => NotFound(error));
         }
 
-        [HttpGet("MyAssigned")]
+        [HttpGet("assigned")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<ActionResult<List<BookingDTO>>> GetMyAssigned([FromQuery] DateTime? from, [FromQuery] DateTime? to)
         {
-            var employeeId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(employeeId))
-            {
-                return Unauthorized();
-            }
+            if (!TryGetCurrentUserId(out var employeeId)) return Unauthorized();
 
             var start = from ?? DateTime.UtcNow.Date;
             var end = to ?? start.AddDays(7);

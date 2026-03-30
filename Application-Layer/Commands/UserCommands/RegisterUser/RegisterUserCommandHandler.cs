@@ -1,11 +1,12 @@
 ﻿using Application_Layer.Interfaces;
 using AutoMapper;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.RegisterUser
 {
-    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, RegisterResult>
+    public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, OperationResult<UserModel>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -16,7 +17,7 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
             _mapper = mapper;
         }
 
-        public async Task<RegisterResult> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<UserModel>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
 
             try
@@ -28,14 +29,14 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
 
                 if (!result.Successful)
                 {
-                    return new RegisterResult(false, null, new List<string> { result.Error ?? "Failed to register user." });
+                    return OperationResult<UserModel>.Failure(result.Error ?? "Failed to register user.");
                 }
 
-                return new RegisterResult(true, user);
+                return OperationResult<UserModel>.Success(user);
             }
             catch (Exception ex)
             {
-                return new RegisterResult(false, null, new List<string> { "An unexpected error occurred: " + ex.Message });
+                return OperationResult<UserModel>.Failure("An unexpected error occurred: " + ex.Message);
             }
         }
     }

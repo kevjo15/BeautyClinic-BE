@@ -1,3 +1,4 @@
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
@@ -16,57 +17,41 @@ public class CategoryRepository : ICategoryRepository
         return await _context.Categories.Include(c => c.Services).ToListAsync();
     }
 
-    public async Task AddCategoryAsync(CategoryModel category)
+    public async Task<OperationResult<CategoryModel>> AddCategoryAsync(CategoryModel category)
     {
         await _context.Categories.AddAsync(category);
         await _context.SaveChangesAsync();
+        return OperationResult<CategoryModel>.Success(category);
     }
 
-    public async Task<bool> UpdateCategoryAsync(CategoryModel category)
+    public async Task<OperationResult<CategoryModel>> UpdateCategoryAsync(CategoryModel category)
     {
         var existingCategory = await _context.Categories.FindAsync(category.Id);
-        if (existingCategory == null) return false;
+        if (existingCategory == null)
+        {
+            return OperationResult<CategoryModel>.Failure("Category not found.");
+        }
 
         existingCategory.Name = category.Name;
         _context.Categories.Update(existingCategory);
         await _context.SaveChangesAsync();
-        return true;
+        return OperationResult<CategoryModel>.Success(existingCategory);
     }
 
-    public async Task<bool> DeleteCategoryAsync(Guid id)
+    public async Task<OperationResult> DeleteCategoryAsync(Guid id)
     {
         var category = await _context.Categories.FindAsync(id);
-        if (category == null) return false;
+        if (category == null)
+        {
+            return OperationResult.Failure("Category not found.");
+        }
 
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success();
     }
 
-    public async Task<bool> AddServiceToCategoryAsync(Guid categoryId, ServiceModel service)
-    {
-        var category = await _context.Categories.Include(c => c.Services).FirstOrDefaultAsync(c => c.Id == categoryId);
-        if (category == null) return false;
-
-        category.Services.Add(service);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> RemoveServiceFromCategoryAsync(Guid categoryId, Guid serviceId)
-    {
-        var category = await _context.Categories.Include(c => c.Services).FirstOrDefaultAsync(c => c.Id == categoryId);
-        if (category == null) return false;
-
-        var service = category.Services.FirstOrDefault(s => s.Id == serviceId);
-        if (service == null) return false;
-
-        category.Services.Remove(service);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<CategoryModel> GetByIdAsync(Guid id)
+    public async Task<CategoryModel?> GetByIdAsync(Guid id)
     {
         return await _context.Categories.FindAsync(id);
     }

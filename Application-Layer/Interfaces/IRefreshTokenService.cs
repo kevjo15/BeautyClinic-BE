@@ -1,3 +1,5 @@
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 
 namespace Application_Layer.Interfaces
@@ -16,13 +18,13 @@ namespace Application_Layer.Interfaces
         /// <summary>
         /// Validates a refresh token and returns the user if valid.
         /// </summary>
-        Task<(bool IsValid, UserRefreshToken? Token, string? Error)> ValidateRefreshTokenAsync(string rawToken);
+        Task<OperationResult<UserRefreshToken>> ValidateRefreshTokenAsync(string rawToken);
 
         /// <summary>
         /// Rotates a refresh token: revokes the old one and creates a new one.
         /// Returns the new raw token and token entity.
         /// </summary>
-        Task<(string RawToken, UserRefreshToken TokenEntity)?> RotateRefreshTokenAsync(
+        Task<OperationResult<RefreshTokenRotationResultDTO>> RotateRefreshTokenAsync(
             string oldRawToken,
             string? ipAddress = null,
             string? userAgent = null);
@@ -30,7 +32,7 @@ namespace Application_Layer.Interfaces
         /// <summary>
         /// Revokes a refresh token.
         /// </summary>
-        Task<bool> RevokeRefreshTokenAsync(
+        Task<OperationResult> RevokeRefreshTokenAsync(
             string rawToken,
             string? ipAddress = null,
             string? reason = null);

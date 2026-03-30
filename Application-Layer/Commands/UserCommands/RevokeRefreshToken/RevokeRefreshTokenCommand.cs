@@ -1,8 +1,9 @@
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
 {
-    public class RevokeRefreshTokenCommand : IRequest<bool>
+    public class RevokeRefreshTokenCommand : IRequest<OperationResult>
     {
         /// <summary>
         /// The refresh token to revoke (from cookie).

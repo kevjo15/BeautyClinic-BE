@@ -1,9 +1,11 @@
 using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {
-    public class LoginCommand : IRequest<LoginResult>
+    public class LoginCommand : IRequest<OperationResult<AuthTokenPairDTO>>
     {
         public LoginUserDTO LoginUserDTO { get; }
         public string? IpAddress { get; }

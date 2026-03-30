@@ -1,11 +1,12 @@
 using MediatR;
 using Application_Layer.Interfaces;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 
 namespace Application_Layer.Commands.BookingCommands.CancelBooking
 {
-    public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand, bool>
+    public class CancelBookingCommandHandler : IRequestHandler<CancelBookingCommand, OperationResult>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IServiceRepository _serviceRepository;
@@ -25,25 +26,33 @@ namespace Application_Layer.Commands.BookingCommands.CancelBooking
             _notificationService = notificationService;
         }
 
-        public async Task<bool> Handle(CancelBookingCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult> Handle(CancelBookingCommand request, CancellationToken cancellationToken)
         {
-            // 1) Hämta bokning
             var booking = await _bookingRepository.GetByIdAsync(request.Id);
             if (booking == null)
-                throw new KeyNotFoundException($"Booking with ID {request.Id} was not found.");
+            {
+                return OperationResult.Failure(
+                    $"Booking with ID {request.Id} was not found.",
+                    OperationFailureType.NotFound);
+            }
 
-            // 2) Kontrollera att den är i framtiden
+            if (!request.CanManageBooking && booking.UserId != request.RequestingUserId)
+            {
+                return OperationResult.Failure(
+                    "You do not have permission to cancel this booking.",
+                    OperationFailureType.Forbidden);
+            }
+
             if (booking.StartTime <= DateTime.Now)
-                throw new InvalidOperationException("Cannot cancel a booking that has already started or completed.");
+            {
+                return OperationResult.Failure("Cannot cancel a booking that has already started or completed.");
+            }
 
-            // 3) Avboka (radera) bokning
             await _bookingRepository.DeleteAsync(request.Id);
 
-            // 4) Hämta tjänsten för notisens meddelande
             var service = await _serviceRepository.GetServiceByIdAsync(booking.ServiceId);
             var serviceName = service != null ? service.Name : "tjänsten";
 
-            // 5) Skapa notis i DB
             var title = "Bokning avbokad";
             var message = $"Din bokning för {serviceName} " +
                           $"({booking.StartTime:yyyy-MM-dd HH:mm}) har avbokats.";
@@ -57,7 +66,6 @@ namespace Application_Layer.Commands.BookingCommands.CancelBooking
             };
             await _mediator.Send(notificationCmd);
 
-            // 6) Skicka realtidsnotis
             await _notificationService.SendBookingNotificationAsync(
                 booking.UserId,
                 title,
@@ -66,7 +74,7 @@ namespace Application_Layer.Commands.BookingCommands.CancelBooking
                 booking.Id
             );
 
-            return true;
+            return OperationResult.Success();
         }
     }
 }

@@ -1,9 +1,10 @@
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.ServiceCommands.DeleteService
 {
-    public class DeleteServiceCommandHandler : IRequestHandler<DeleteServiceCommand, bool>
+    public class DeleteServiceCommandHandler : IRequestHandler<DeleteServiceCommand, OperationResult>
     {
         private readonly IServiceRepository _serviceRepository;
 
@@ -12,10 +13,9 @@ namespace Application_Layer.Commands.ServiceCommands.DeleteService
             _serviceRepository = serviceRepository;
         }
 
-        public async Task<bool> Handle(DeleteServiceCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult> Handle(DeleteServiceCommand request, CancellationToken cancellationToken)
         {
-            await _serviceRepository.DeleteServiceAsync(request.ServiceId);
-            return true;
+            return await _serviceRepository.DeleteServiceAsync(request.ServiceId);
         }
     }
 }

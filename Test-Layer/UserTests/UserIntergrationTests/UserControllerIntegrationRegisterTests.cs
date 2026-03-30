@@ -1,6 +1,7 @@
 ﻿using API_Layer.Controllers;
 using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTO_s;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
 using MediatR;
@@ -47,9 +48,9 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 LastName = registerUserDTO.LastName
             };
 
-            var registerResult = new RegisterResult(true, expectedUser);
+            var registerResult = OperationResult<UserModel>.Success(expectedUser);
 
-            // Mocka mediators "Send" metod så att den returnerar en framgångsrik RegisterResult
+            // Mocka mediators "Send" metod så att den returnerar en framgångsrik OperationResult
             A.CallTo(() => _mediator.Send(A<RegisterUserCommand>._, A<CancellationToken>._))
                 .Returns(registerResult);
 
@@ -81,7 +82,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 ConfirmPassword = "Password123!"
             };
 
-            var registerResult = new RegisterResult(false, null, new List<string> { "Invalid email format" });
+            var registerResult = OperationResult<UserModel>.Failure("Invalid email format");
 
             // Simulera att registreringen misslyckas genom att returnera ett negativt resultat från mediatorn
             A.CallTo(() => _mediator.Send(A<RegisterUserCommand>._, A<CancellationToken>._))
@@ -93,9 +94,9 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Assert
             Assert.IsInstanceOf<BadRequestObjectResult>(actionResult);
 
-            var badRequestResult = (actionResult as BadRequestObjectResult)?.Value as List<string>;
+            var badRequestResult = (actionResult as BadRequestObjectResult)?.Value as string;
             Assert.NotNull(badRequestResult);
-            Assert.That(badRequestResult.Contains("Invalid email format"));
+            Assert.That(badRequestResult, Is.EqualTo("Invalid email format"));
         }
 
     }

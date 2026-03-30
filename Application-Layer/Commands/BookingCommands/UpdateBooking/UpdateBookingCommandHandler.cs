@@ -2,11 +2,12 @@ using MediatR;
 using AutoMapper;
 using Application_Layer.Interfaces;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 
 namespace Application_Layer.Commands.BookingCommands.UpdateBooking
 {
-    public class UpdateBookingCommandHandler : IRequestHandler<UpdateBookingCommand, bool>
+    public class UpdateBookingCommandHandler : IRequestHandler<UpdateBookingCommand, OperationResult<BookingModel>>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
@@ -23,27 +24,34 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
             _notificationService = notificationService;
         }
 
-        public async Task<bool> Handle(UpdateBookingCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<BookingModel>> Handle(UpdateBookingCommand request, CancellationToken cancellationToken)
         {
             if (request.Booking.ServiceId == Guid.Empty)
             {
-                throw new ArgumentException("ServiceId is required and cannot be empty.");
+                return OperationResult<BookingModel>.Failure("ServiceId is required and cannot be empty.");
             }
 
-            // 1) Hämta bokning
             var booking = await _bookingRepository.GetByIdAsync(request.Id);
             if (booking == null)
-                throw new KeyNotFoundException($"Booking with ID {request.Id} was not found.");
+            {
+                return OperationResult<BookingModel>.Failure(
+                    $"Booking with ID {request.Id} was not found.",
+                    OperationFailureType.NotFound);
+            }
 
-            // 2) Uppdatera bokningsmodell
+            if (!request.CanManageBooking && booking.UserId != request.RequestingUserId)
+            {
+                return OperationResult<BookingModel>.Failure(
+                    "You do not have permission to update this booking.",
+                    OperationFailureType.Forbidden);
+            }
+
             _mapper.Map(request.Booking, booking);
             await _bookingRepository.UpdateAsync(booking);
 
-            // 3) Ev. hämta tjänsten (om du vill nämna den i notisen)
             var service = await _serviceRepository.GetServiceByIdAsync(booking.ServiceId);
             var serviceName = service != null ? service.Name : "tjänsten";
 
-            // 4) Skapa notis i DB
             var title = "Bokningsändring";
             var message = $"Din bokning för {serviceName} " +
                           $"({booking.StartTime:yyyy-MM-dd HH:mm}) har uppdaterats.";
@@ -58,7 +66,6 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
             };
             await _mediator.Send(notificationCmd);
 
-            // 5) Skicka realtidsnotis
             await _notificationService.SendBookingNotificationAsync(
                 booking.UserId,
                 title,
@@ -67,8 +74,7 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
                 booking.Id
             );
 
-
-            return true;
+            return OperationResult<BookingModel>.Success(booking);
         }
     }
 }

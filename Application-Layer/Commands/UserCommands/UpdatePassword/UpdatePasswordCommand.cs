@@ -1,9 +1,10 @@
 using Application_Layer.DTO_s;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.UpdatePassword
 {
-    public class UpdatePasswordCommand : IRequest<bool>
+    public class UpdatePasswordCommand : IRequest<OperationResult>
     {
         public string UserId { get; }
         public UpdatePasswordDTO UpdatePasswordDTO { get; }
