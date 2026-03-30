@@ -1,5 +1,5 @@
 using MediatR;
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using AutoMapper;
 using Application_Layer.Interfaces;
 

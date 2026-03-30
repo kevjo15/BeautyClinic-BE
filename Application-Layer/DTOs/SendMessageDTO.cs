@@ -1,4 +1,4 @@
-namespace ApplicationLayer.DTOs
+namespace Application_Layer.DTOs
 {
     public class SendMessageDTO
     {

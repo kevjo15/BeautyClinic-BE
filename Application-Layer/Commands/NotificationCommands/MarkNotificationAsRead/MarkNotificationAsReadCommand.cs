@@ -6,6 +6,6 @@ namespace Application_Layer.Commands.NotificationCommands
     public class MarkNotificationAsReadCommand : IRequest<OperationResult>
     {
         public Guid NotificationId { get; set; }
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
     }
 }

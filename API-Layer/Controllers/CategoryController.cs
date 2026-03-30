@@ -5,14 +5,13 @@ using System.Threading.Tasks;
 using Domain_Layer.Models;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using Application_Layer.Commands.CategoryCommands.AddServiceToCategory;
 using Application_Layer.Commands.CategoryCommands.RemoveServiceFromCategory;
 using Application_Layer.Commands.CategoryCommands.DeleteCategory;
 using Application_Layer.Queries.CategoryQueries;
 using Application_Layer.Commands.CategoryCommands.CreateCategory;
 using Application_Layer.Commands.CategoryCommands.UpdateCategory;
-using Application_Layer.DTOs;
 using Application_Layer.Queries.CategoryQueries.GetCategoriesWithServices;
 
 namespace API_Layer.Controllers

@@ -5,7 +5,7 @@ using Application_Layer.Interfaces;
 
 namespace Application_Layer.Queries.UserQueries.GetUserName
 {
-    public class GetUserNameQueryHandler : IRequestHandler<GetUserNameQuery, UserNameDTO>
+    public class GetUserNameQueryHandler : IRequestHandler<GetUserNameQuery, UserNameDTO?>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -16,7 +16,7 @@ namespace Application_Layer.Queries.UserQueries.GetUserName
             _mapper = mapper;
         }
 
-        public async Task<UserNameDTO> Handle(GetUserNameQuery request, CancellationToken cancellationToken)
+        public async Task<UserNameDTO?> Handle(GetUserNameQuery request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.FindByIdAsync(request.UserId);
 

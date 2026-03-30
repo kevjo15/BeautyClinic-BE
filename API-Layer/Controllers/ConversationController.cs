@@ -1,7 +1,9 @@
-using Application.Features.Conversations.Commands;
-using Application.Features.Conversations.Queries;
-using Application.Features.MessageCommands.SendMessage;
-using ApplicationLayer.DTOs;
+using Application_Layer.Commands.ConversationCommands.CreateConversation;
+using Application_Layer.Commands.MessageCommands.SendMessage;
+using Application_Layer.DTOs;
+using Application_Layer.Queries.ConversationsQueries.GetAllConversations;
+using Application_Layer.Queries.ConversationsQueries.GetConversationById;
+using Application_Layer.Queries.MessagesQueries.GetMessagesForConversation;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

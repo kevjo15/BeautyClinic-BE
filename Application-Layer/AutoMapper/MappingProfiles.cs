@@ -1,6 +1,4 @@
-﻿﻿using Application_Layer.DTO_s;
 using Application_Layer.DTOs;
-using ApplicationLayer.DTOs;
 using AutoMapper;
 using Domain_Layer.Models;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;

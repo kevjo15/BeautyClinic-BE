@@ -3,7 +3,7 @@ using MediatR;
 using AutoMapper;
 using Application_Layer.Interfaces;
 
-namespace Application.Features.MessageCommands.SendMessage
+namespace Application_Layer.Commands.MessageCommands.SendMessage
 {
     public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Guid>
     {

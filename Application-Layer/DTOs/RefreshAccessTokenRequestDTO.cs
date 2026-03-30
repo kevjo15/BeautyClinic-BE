@@ -1,7 +1,7 @@
-namespace Application_Layer.DTO_s
+namespace Application_Layer.DTOs
 {
     public class RefreshAccessTokenRequestDTO
     {
-        public string AccessToken { get; set; }
+        public string AccessToken { get; set; } = string.Empty;
     }
 }

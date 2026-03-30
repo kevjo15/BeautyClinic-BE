@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using MediatR;
-using Application.Features.MessageCommands.SendMessage;
-using ApplicationLayer.DTOs;
+using Application_Layer.Commands.MessageCommands.SendMessage;
+using Application_Layer.DTOs;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
 using Domain_Layer.Models;
 using Microsoft.AspNetCore.Authorization;

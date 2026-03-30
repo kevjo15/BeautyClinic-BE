@@ -4,7 +4,6 @@ using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.Commands.UserCommands.RevokeRefreshToken;
 using Application_Layer.Commands.UserCommands.Update;
 using Application_Layer.Commands.UserCommands.UpdatePassword;
-using Application_Layer.DTO_s;
 using Application_Layer.DTOs;
 using Application_Layer.Queries.UserQueries.GetUserById;
 using Application_Layer.Queries.UserQueries.GetUserName;
