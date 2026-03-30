@@ -1,4 +1,4 @@
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 
 namespace Application_Layer.Interfaces
 {

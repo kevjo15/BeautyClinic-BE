@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application_Layer.Queries.ServiceQueries.GetAllServices;
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
 using Microsoft.AspNetCore.Http;

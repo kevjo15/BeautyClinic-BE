@@ -3,7 +3,7 @@ using Application_Layer.DTOs;
 
 namespace Application_Layer.Queries.UserQueries.GetUserName
 {
-    public class GetUserNameQuery : IRequest<UserNameDTO>
+    public class GetUserNameQuery : IRequest<UserNameDTO?>
     {
         public string UserId { get; }
 
