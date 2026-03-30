@@ -1,7 +1,7 @@
 using Application_Layer.Interfaces;
 using MediatR;
 
-namespace Application_Layer.Features.Services.Commands.UploadServiceImage
+namespace Application_Layer.Commands.ServiceCommands.UploadServiceImage
 {
     public sealed class UploadServiceImageHandler : IRequestHandler<UploadServiceImageCommand, UploadServiceImageResult>
     {

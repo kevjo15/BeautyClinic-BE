@@ -8,14 +8,14 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
-namespace Test_Layer.UserTests.UserIntergrationTests
+namespace Test_Layer.UserTests.UserIntegrationTests
 {
     [TestFixture]
-    public class UserControllerIntegrationRegisterTests
+    public class AuthControllerIntegrationRegisterTests
     {
         private IMediator _mediator;
         private IConfiguration _configuration;
-        private UserController _userController;
+        private AuthController _authController;
 
         [SetUp]
         public void SetUp()
@@ -23,7 +23,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             // Skapa en fake för IMediator och IConfiguration
             _mediator = A.Fake<IMediator>();
             _configuration = A.Fake<IConfiguration>();
-            _userController = new UserController(_mediator, _configuration);
+            _authController = new AuthController(_mediator, _configuration);
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 .Returns(registerResult);
 
             // Act
-            var actionResult = await _userController.Register(registerUserDTO) as OkObjectResult;
+            var actionResult = await _authController.Register(registerUserDTO) as OkObjectResult;
 
             // Assert
             Assert.IsInstanceOf<OkObjectResult>(actionResult);
@@ -89,7 +89,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 .Returns(registerResult);
 
             // Act
-            var actionResult = await _userController.Register(registerUserDTO);
+            var actionResult = await _authController.Register(registerUserDTO);
 
             // Assert
             Assert.IsInstanceOf<BadRequestObjectResult>(actionResult);

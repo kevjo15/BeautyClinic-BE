@@ -5,7 +5,7 @@ using MediatR;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Application_Layer.Features.Services.Queries.GetAllServicesWithSas
+namespace Application_Layer.Queries.ServiceQueries.GetAllServicesWithSas
 {
     public sealed class GetAllServicesWithSasHandler
         : IRequestHandler<GetAllServicesWithSasQuery, IReadOnlyList<ServiceDTO>>

@@ -3,11 +3,12 @@ using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using API_Layer.Hubs;
 using Domain_Layer.Models;
+using Infrastructure_Layer.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace API_Layer.Services
+namespace API_Layer.Notifications
 {
     public class SignalRNotificationService : INotificationService
     {

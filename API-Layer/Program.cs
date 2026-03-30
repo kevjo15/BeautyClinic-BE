@@ -10,9 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
 using API_Layer.Hubs;
 using API_Layer.Middleware;
+using API_Layer.Notifications;
 using Application_Layer.Interfaces;
-using API_Layer.Services;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure_Layer.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
