@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 
-namespace API_Layer.Services
+namespace Infrastructure_Layer.Notifications
 {
     public static class EmailTemplateBuilder
     {

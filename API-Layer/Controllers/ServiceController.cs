@@ -12,8 +12,8 @@ using Application_Layer.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
 using Microsoft.AspNetCore.Http;
-using Application_Layer.Features.Services.Commands.UploadServiceImage;
-using Application_Layer.Features.Services.Queries.GetAllServicesWithSas;
+using Application_Layer.Commands.ServiceCommands.UploadServiceImage;
+using Application_Layer.Queries.ServiceQueries.GetAllServicesWithSas;
 using System.Threading;
 using System.IO;
 

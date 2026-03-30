@@ -9,14 +9,14 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
-namespace Test_Layer.UserTests.UserIntergrationTests
+namespace Test_Layer.UserTests.UserIntegrationTests
 {
     [TestFixture]
-    public class UserControllerIntegrationLoginTests
+    public class AuthControllerIntegrationLoginTests
     {
         private IMediator _mediator;
         private IConfiguration _configuration;
-        private UserController _userController;
+        private AuthController _authController;
 
 
         [SetUp]
@@ -26,8 +26,8 @@ namespace Test_Layer.UserTests.UserIntergrationTests
             _mediator = A.Fake<IMediator>();
             _configuration = A.Fake<IConfiguration>();
 
-            // Skapa en instans av UserController med fake mediator och configuration
-            _userController = new UserController(_mediator, _configuration);
+            // Skapa en instans av AuthController med fake mediator och configuration
+            _authController = new AuthController(_mediator, _configuration);
 
             // Registrera en användare som används i inloggnings- och andra tester
             var registerUserDTO = new RegisterUserDTO
@@ -55,7 +55,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 .Returns(registerResult);
 
             // Registrera användaren
-            _userController.Register(registerUserDTO);
+            _authController.Register(registerUserDTO);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 .Returns(loginResult);
 
             // Act
-            var actionResult = await _userController.Login(loginUserDTO) as OkObjectResult;
+            var actionResult = await _authController.Login(loginUserDTO) as OkObjectResult;
 
             // Assert
             Assert.IsNotNull(actionResult, "ActionResult is null, expected OkObjectResult.");
@@ -122,7 +122,7 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 .Returns(loginResult);
 
             // Act
-            var actionResult = await _userController.Login(loginUserDTO) as BadRequestObjectResult;
+            var actionResult = await _authController.Login(loginUserDTO) as BadRequestObjectResult;
 
             // Assert
             Assert.IsInstanceOf<BadRequestObjectResult>(actionResult);

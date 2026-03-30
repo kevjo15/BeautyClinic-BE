@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Application_Layer.Features.Services.Commands.UploadServiceImage
+namespace Application_Layer.Commands.ServiceCommands.UploadServiceImage
 {
     public sealed class UploadServiceImageValidator : AbstractValidator<UploadServiceImageCommand>
     {

@@ -1,7 +1,7 @@
 using MediatR;
 using Application_Layer.DTOs;
 
-namespace Application_Layer.Features.Services.Commands.UploadServiceImage
+namespace Application_Layer.Commands.ServiceCommands.UploadServiceImage
 {
     public sealed record UploadServiceImageCommand(Guid ServiceId, FileUploadRequest File) : IRequest<UploadServiceImageResult>;
 
