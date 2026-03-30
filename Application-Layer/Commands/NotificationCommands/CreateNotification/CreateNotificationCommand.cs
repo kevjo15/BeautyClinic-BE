@@ -1,9 +1,11 @@
-using MediatR;
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
+using MediatR;
 
 namespace Application_Layer.Commands.NotificationCommands.CreateNotification
 {
-    public class CreateNotificationCommand : IRequest<CreateNotificationResult>
+    public class CreateNotificationCommand : IRequest<OperationResult<NotificationDTO>>
     {
         public string Title { get; set; }
         public string Message { get; set; }

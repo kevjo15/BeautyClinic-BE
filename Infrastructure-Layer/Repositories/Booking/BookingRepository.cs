@@ -15,7 +15,7 @@ namespace Infrastructure_Layer.Repositories
             _context = context;
         }
 
-        public async Task<BookingModel> GetByIdAsync(Guid id)
+        public async Task<BookingModel?> GetByIdAsync(Guid id)
         {
             var booking = await _context.Bookings
                 .Include(b => b.Service)
@@ -44,6 +44,11 @@ namespace Infrastructure_Layer.Repositories
         public async Task DeleteAsync(Guid id)
         {
             var booking = await _context.Bookings.FindAsync(id);
+            if (booking == null)
+            {
+                return;
+            }
+
             _context.Bookings.Remove(booking);
             await _context.SaveChangesAsync();
         }

@@ -1,9 +1,11 @@
 using Application_Layer.DTO_s;
+using Domain_Layer.Common;
+using Domain_Layer.Models;
 using MediatR;
 
 namespace Application_Layer.Commands.ServiceCommands.UpdateService
 {
-    public class UpdateServiceCommand : IRequest<UpdateServiceResult>
+    public class UpdateServiceCommand : IRequest<OperationResult<ServiceModel>>
     {
         public Guid ServiceId { get; }
         public ServiceDTO ServiceDto { get; }

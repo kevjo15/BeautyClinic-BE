@@ -54,8 +54,8 @@ namespace Test_Layer.UserTests.UserUnitTests
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsTrue(result.Success);
-            Assert.That(result.CreatedUser.Email, Is.EqualTo(userModel.Email));
+            Assert.IsTrue(result.Successful);
+            Assert.That(result.Data?.Email, Is.EqualTo(userModel.Email));
         }
 
         [Test]
@@ -86,9 +86,8 @@ namespace Test_Layer.UserTests.UserUnitTests
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsFalse(result.Success);
-            Assert.That(result.Errors.Count, Is.EqualTo(1));  // Kontrollera att exakt ett fel returneras
-            Assert.That(result.Errors[0], Is.EqualTo("User already exists"));  // Kontrollera att felmeddelandet är korrekt
+            Assert.IsFalse(result.Successful);
+            Assert.That(result.Error, Is.EqualTo("User already exists"));
 
             // Kontrollera att rätt metoder anropades exakt en gång
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
@@ -128,8 +127,8 @@ namespace Test_Layer.UserTests.UserUnitTests
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Errors.Contains("An unexpected error occurred: Unexpected error"));
+            Assert.IsFalse(result.Successful);
+            Assert.That(result.Error, Is.EqualTo("An unexpected error occurred: Unexpected error"));
         }
 
     }

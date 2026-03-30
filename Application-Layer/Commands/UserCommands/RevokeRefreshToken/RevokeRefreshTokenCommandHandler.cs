@@ -1,9 +1,10 @@
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
 {
-    public class RevokeRefreshTokenCommandHandler : IRequestHandler<RevokeRefreshTokenCommand, bool>
+    public class RevokeRefreshTokenCommandHandler : IRequestHandler<RevokeRefreshTokenCommand, OperationResult>
     {
         private readonly IRefreshTokenService _refreshTokenService;
 
@@ -12,7 +13,7 @@ namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
             _refreshTokenService = refreshTokenService;
         }
 
-        public async Task<bool> Handle(RevokeRefreshTokenCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult> Handle(RevokeRefreshTokenCommand request, CancellationToken cancellationToken)
         {
             // If a specific refresh token is provided, revoke just that token
             if (!string.IsNullOrWhiteSpace(request.RefreshToken))
@@ -30,10 +31,10 @@ namespace Application_Layer.Commands.UserCommands.RevokeRefreshToken
                     request.UserId,
                     request.IpAddress,
                     request.Reason ?? "All sessions terminated");
-                return true;
+                return OperationResult.Success();
             }
 
-            return false;
+            return OperationResult.Failure("Either a refresh token or user ID is required.");
         }
     }
 }

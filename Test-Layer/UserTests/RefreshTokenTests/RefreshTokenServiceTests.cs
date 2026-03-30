@@ -84,13 +84,13 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             A.CallTo(() => _repository.GetByTokenHashAsync(tokenHash)).Returns(storedToken);
 
             // Act
-            var (isValid, token, error) = await _service.ValidateRefreshTokenAsync(rawToken);
+            var result = await _service.ValidateRefreshTokenAsync(rawToken);
 
             // Assert
-            Assert.IsTrue(isValid);
-            Assert.IsNotNull(token);
-            Assert.IsNull(error);
-            Assert.That(token!.UserId, Is.EqualTo(userId));
+            Assert.IsTrue(result.Successful);
+            Assert.IsNotNull(result.Data);
+            Assert.IsNull(result.Error);
+            Assert.That(result.Data!.UserId, Is.EqualTo(userId));
         }
 
         [Test]
@@ -114,12 +114,12 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             A.CallTo(() => _repository.GetByTokenHashAsync(tokenHash)).Returns(revokedToken);
 
             // Act
-            var (isValid, token, error) = await _service.ValidateRefreshTokenAsync(rawToken);
+            var result = await _service.ValidateRefreshTokenAsync(rawToken);
 
             // Assert
-            Assert.IsFalse(isValid);
-            Assert.IsNull(token);
-            Assert.That(error, Does.Contain("revoked"));
+            Assert.IsFalse(result.Successful);
+            Assert.IsNull(result.Data);
+            Assert.That(result.Error, Does.Contain("revoked"));
 
             // Verify that RevokeTokenChainAsync was called (token reuse detection)
             A.CallTo(() => _repository.RevokeTokenChainAsync(tokenHash, A<string>._, A<string>._))
@@ -146,12 +146,12 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             A.CallTo(() => _repository.GetByTokenHashAsync(tokenHash)).Returns(expiredToken);
 
             // Act
-            var (isValid, token, error) = await _service.ValidateRefreshTokenAsync(rawToken);
+            var result = await _service.ValidateRefreshTokenAsync(rawToken);
 
             // Assert
-            Assert.IsFalse(isValid);
-            Assert.IsNull(token);
-            Assert.That(error, Does.Contain("expired"));
+            Assert.IsFalse(result.Successful);
+            Assert.IsNull(result.Data);
+            Assert.That(result.Error, Does.Contain("expired"));
         }
 
         [Test]
@@ -164,12 +164,12 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             A.CallTo(() => _repository.GetByTokenHashAsync(tokenHash)).Returns((UserRefreshToken?)null);
 
             // Act
-            var (isValid, token, error) = await _service.ValidateRefreshTokenAsync(rawToken);
+            var result = await _service.ValidateRefreshTokenAsync(rawToken);
 
             // Assert
-            Assert.IsFalse(isValid);
-            Assert.IsNull(token);
-            Assert.That(error, Does.Contain("Invalid"));
+            Assert.IsFalse(result.Successful);
+            Assert.IsNull(result.Data);
+            Assert.That(result.Error, Does.Contain("Invalid"));
         }
 
         [Test]
@@ -198,8 +198,10 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             var result = await _service.RotateRefreshTokenAsync(oldRawToken, "127.0.0.1", "Test-Agent");
 
             // Assert
-            Assert.IsNotNull(result);
-            var (newRawToken, newTokenEntity) = result.Value;
+            Assert.IsTrue(result.Successful);
+            Assert.NotNull(result.Data);
+            var newRawToken = result.Data!.RawToken;
+            var newTokenEntity = result.Data.TokenEntity;
 
             Assert.IsNotNull(newRawToken);
             Assert.IsNotEmpty(newRawToken);
@@ -240,7 +242,7 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             var result = await _service.RevokeRefreshTokenAsync(rawToken, "127.0.0.1", "User logout");
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result.Successful);
             A.CallTo(() => _repository.UpdateAsync(A<UserRefreshToken>.That.Matches(t =>
                 t.Id == token.Id &&
                 t.RevokedAt != null &&

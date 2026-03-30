@@ -1,9 +1,10 @@
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.NotificationCommands
 {
-    public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotificationAsReadCommand, Unit>
+    public class MarkNotificationAsReadCommandHandler : IRequestHandler<MarkNotificationAsReadCommand, OperationResult>
     {
         private readonly INotificationRepository _notificationRepository;
 
@@ -12,17 +13,17 @@ namespace Application_Layer.Commands.NotificationCommands
             _notificationRepository = notificationRepository;
         }
 
-        public async Task<Unit> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
         {
             var notification = await _notificationRepository.GetByIdAsync(request.NotificationId);
             if (notification == null || notification.UserId != request.UserId)
             {
-                throw new KeyNotFoundException("Notification not found or does not belong to this user");
+                return OperationResult.Failure("Notification not found or does not belong to this user");
             }
 
             await _notificationRepository.MarkAsReadAsync(request.NotificationId);
 
-            return Unit.Value;
+            return OperationResult.Success();
         }
     }
 }

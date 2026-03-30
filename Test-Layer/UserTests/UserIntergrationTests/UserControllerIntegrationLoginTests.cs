@@ -2,6 +2,8 @@
 using Application_Layer.Commands.UserCommands.Login;
 using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
 using MediatR;
@@ -47,9 +49,9 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 LastName = registerUserDTO.LastName
             };
 
-            var registerResult = new RegisterResult(true, expectedUser);
+            var registerResult = OperationResult<UserModel>.Success(expectedUser);
 
-            // Mocka mediators "Send" metod för registrering så att den returnerar en framgångsrik RegisterResult
+            // Mocka mediators "Send" metod för registrering så att den returnerar en framgångsrik OperationResult
             A.CallTo(() => _mediator.Send(A<RegisterUserCommand>._, A<CancellationToken>._))
                 .Returns(registerResult);
 
@@ -69,13 +71,10 @@ namespace Test_Layer.UserTests.UserIntergrationTests
 
             var expectedToken = "fake_token";
 
-            var loginResult = new LoginResult
-            {
-                Successful = true,
-                Token = expectedToken
-            };
+            var loginResult = OperationResult<AuthTokenPairDTO>.Success(
+                new AuthTokenPairDTO(expectedToken, null));
 
-            // Mocka mediators "Send" metod så att den returnerar en framgångsrik LoginResult
+            // Mocka mediators "Send" metod så att den returnerar en framgångsrik OperationResult
             A.CallTo(() => _mediator.Send(A<LoginCommand>._, A<CancellationToken>._))
                 .Returns(loginResult);
 
@@ -117,13 +116,9 @@ namespace Test_Layer.UserTests.UserIntergrationTests
                 Password = "WrongPassword!"
             };
 
-            var loginResult = new LoginResult
-            {
-                Successful = false,
-                Error = "Invalid credentials"
-            };
+            var loginResult = OperationResult<AuthTokenPairDTO>.Failure("Invalid credentials");
 
-            // Mocka mediators "Send" metod så att den returnerar ett negativt LoginResult
+            // Mocka mediators "Send" metod så att den returnerar ett negativt OperationResult
             A.CallTo(() => _mediator.Send(A<LoginCommand>._, A<CancellationToken>._))
                 .Returns(loginResult);
 

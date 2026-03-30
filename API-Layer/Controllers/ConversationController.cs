@@ -9,7 +9,7 @@ namespace API_Layer.Controllers
 {
     [ApiController]
     [Route("api/conversations")]
-    public class ConversationController : ControllerBase
+    public class ConversationController : BaseApiController
     {
         private readonly IMediator _mediator;
 
@@ -18,7 +18,7 @@ namespace API_Layer.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("GetAllConversations")]
+        [HttpGet]
         public async Task<IActionResult> GetAllConversations()
         {
             var query = new GetAllConversationsQuery();
@@ -26,7 +26,7 @@ namespace API_Layer.Controllers
             return Ok(result);
         }
 
-        [HttpGet("GetConversationById/{conversationId}")]
+        [HttpGet("{conversationId}")]
         public async Task<IActionResult> GetConversationById(Guid conversationId)
         {
             var query = new GetConversationByIdQuery { ConversationId = conversationId };
@@ -39,14 +39,14 @@ namespace API_Layer.Controllers
             return Ok(result);
         }
 
-        [HttpPost("CreateConversation")]
+        [HttpPost]
         public async Task<IActionResult> CreateConversation([FromBody] CreateConversationCommand command)
         {
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetConversationById), new { conversationId = result.Id }, result);
         }
 
-        [HttpGet("{conversationId}/GetMessagesForConversation")]
+        [HttpGet("{conversationId}/messages")]
         public async Task<IActionResult> GetMessagesForConversation(Guid conversationId)
         {
             var query = new GetMessagesForConversationQuery { ConversationId = conversationId };
@@ -54,7 +54,7 @@ namespace API_Layer.Controllers
             return Ok(result);
         }
 
-        [HttpPost("{conversationId}/SendMessage")]
+        [HttpPost("{conversationId}/messages")]
         public async Task<IActionResult> SendMessage(Guid conversationId, [FromBody] SendMessageDTO messageDto)
         {
             var command = new SendMessageCommand { MessageDto = messageDto };

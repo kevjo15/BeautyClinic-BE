@@ -40,8 +40,6 @@ namespace Application_Layer.AutoMapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => false));
-            CreateMap<NotificationModel, CreateNotificationResult>();
-
             // Category
             CreateMap<CategoryModel, CategoryNameDTO>();
 

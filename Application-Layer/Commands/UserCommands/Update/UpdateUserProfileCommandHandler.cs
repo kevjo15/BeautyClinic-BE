@@ -1,11 +1,12 @@
 ﻿using Application_Layer.DTO_s;
 using Application_Layer.Interfaces;
 using AutoMapper;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.Update
 {
-    public class UpdateUserProfileCommandHandler : IRequestHandler<UpdateUserProfileCommand, UpdateUserProfileResult>
+    public class UpdateUserProfileCommandHandler : IRequestHandler<UpdateUserProfileCommand, OperationResult<UpdateUserProfileDTO>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -15,13 +16,13 @@ namespace Application_Layer.Commands.UserCommands.Update
             _mapper = mapper;
         }
 
-        public async Task<UpdateUserProfileResult> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<UpdateUserProfileDTO>> Handle(UpdateUserProfileCommand request, CancellationToken cancellationToken)
         {
             var user = await _userRepository.FindByIdAsync(request.UserId);
 
             if (user == null)
             {
-                return new UpdateUserProfileResult(false, null, new List<string> { "User was not found!" });
+                return OperationResult<UpdateUserProfileDTO>.Failure("User was not found!");
             }
 
             _mapper.Map(request.UpdatedProfileDTO, user);
@@ -30,10 +31,10 @@ namespace Application_Layer.Commands.UserCommands.Update
 
             if (!updateResult.Successful)
             {
-                return new UpdateUserProfileResult(false, null, new List<string> { updateResult.Error ?? "Failed to update user profile." });
+                return OperationResult<UpdateUserProfileDTO>.Failure(updateResult.Error ?? "Failed to update user profile.");
             }
             var updatedProfile = _mapper.Map<UpdateUserProfileDTO>(user);
-            return new UpdateUserProfileResult(true, updatedProfile);
+            return OperationResult<UpdateUserProfileDTO>.Success(updatedProfile);
         }
     }
 }

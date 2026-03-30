@@ -2,10 +2,11 @@ using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
+using Domain_Layer.Common;
 
 namespace Application_Layer.Queries.BookingQueries.GetBookingById
 {
-    public class GetBookingByIdQueryHandler : IRequestHandler<GetBookingByIdQuery, BookingDTO>
+    public class GetBookingByIdQueryHandler : IRequestHandler<GetBookingByIdQuery, OperationResult<BookingDTO>>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
@@ -16,14 +17,25 @@ namespace Application_Layer.Queries.BookingQueries.GetBookingById
             _mapper = mapper;
         }
 
-        public async Task<BookingDTO> Handle(GetBookingByIdQuery request, CancellationToken cancellationToken)
+        public async Task<OperationResult<BookingDTO>> Handle(GetBookingByIdQuery request, CancellationToken cancellationToken)
         {
             var booking = await _bookingRepository.GetByIdAsync(request.Id);
 
             if (booking == null)
-                throw new KeyNotFoundException($"Booking with ID {request.Id} was not found.");
+            {
+                return OperationResult<BookingDTO>.Failure(
+                    $"Booking with ID {request.Id} was not found.",
+                    OperationFailureType.NotFound);
+            }
 
-            return _mapper.Map<BookingDTO>(booking);
+            if (!request.CanManageBooking && booking.UserId != request.RequestingUserId)
+            {
+                return OperationResult<BookingDTO>.Failure(
+                    "You do not have access to this booking.",
+                    OperationFailureType.Forbidden);
+            }
+
+            return OperationResult<BookingDTO>.Success(_mapper.Map<BookingDTO>(booking));
         }
     }
 }
