@@ -25,11 +25,12 @@ namespace Infrastructure_Layer.Repositories.Notification
             return notification;
         }
 
-        public async Task<List<NotificationModel>> GetUserNotificationsAsync(string userId)
+        public async Task<List<NotificationModel>> GetUserNotificationsAsync(string userId, int limit)
         {
             return await _context.Notifications
                 .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt)
+                .Take(limit)
                 .Include(n => n.Booking)
                 .ToListAsync();
         }

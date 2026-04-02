@@ -27,7 +27,7 @@ namespace API_Layer.Hubs
             _conversationRepository = conversationRepository;
         }
 
-        public async Task SendMessage(string message, Guid conversationId)
+        public async Task SendMessage(string message, Guid conversationId, Guid? bookingId = null)
         {
             var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
@@ -66,22 +66,28 @@ namespace API_Layer.Hubs
             if (recipientId != Guid.Empty)
             {
                 // Skapa notifikation i databasen
-                var notificationCommand = new CreateNotificationCommand 
-                { 
+                var notificationCommand = new CreateNotificationCommand
+                {
                     Title = "New Message",
                     Message = message,
                     UserId = recipientId.ToString(),
-                    Type = NotificationType.MessageReceived
+                    Type = NotificationType.MessageReceived,
+                    ConversationId = conversationId,
+                    BookingId = bookingId
                 };
                 var notificationResult = await _mediator.Send(notificationCommand);
 
-                // Skicka real-time notifikation via NotificationHub
+                // Skicka real-time notifikation via NotificationHub.
+                // Använd samma ID som DB-notisen så att klienten kan markera rätt post som läst.
                 await NotificationHub.SendNotificationToUser(
                     _notificationHub,
                     recipientId.ToString(),
                     "New Message",
                     message,
-                    NotificationType.MessageReceived
+                    NotificationType.MessageReceived,
+                    conversationId,
+                    notificationResult.Data?.Id,
+                    bookingId
                 );
             }
 

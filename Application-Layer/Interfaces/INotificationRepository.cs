@@ -8,7 +8,7 @@ namespace Application_Layer.Interfaces
     public interface INotificationRepository
     {
         Task<NotificationModel> CreateAsync(NotificationModel notification);
-        Task<List<NotificationModel>> GetUserNotificationsAsync(string userId);
+        Task<List<NotificationModel>> GetUserNotificationsAsync(string userId, int limit);
         Task<NotificationModel?> GetByIdAsync(Guid id);
         Task<NotificationModel> MarkAsReadAsync(Guid id);
         Task<List<NotificationModel>> GetUnreadNotificationsAsync(string userId);

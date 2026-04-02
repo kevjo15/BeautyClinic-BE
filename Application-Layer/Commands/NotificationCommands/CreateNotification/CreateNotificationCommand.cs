@@ -12,5 +12,6 @@ namespace Application_Layer.Commands.NotificationCommands.CreateNotification
         public string UserId { get; set; } = string.Empty;
         public NotificationType Type { get; set; }
         public Guid? BookingId { get; set; }
+        public Guid? ConversationId { get; set; }
     }
 }
