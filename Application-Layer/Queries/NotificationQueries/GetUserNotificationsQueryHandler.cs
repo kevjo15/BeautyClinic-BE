@@ -20,7 +20,7 @@ namespace Application_Layer.Queries.NotificationQueries
 
         public async Task<List<NotificationDTO>> Handle(GetUserNotificationsQuery request, CancellationToken cancellationToken)
         {
-            var notifications = await _notificationRepository.GetUserNotificationsAsync(request.UserId);
+            var notifications = await _notificationRepository.GetUserNotificationsAsync(request.UserId, request.Limit);
             return _mapper.Map<List<NotificationDTO>>(notifications);
         }
     }

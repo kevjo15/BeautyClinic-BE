@@ -1,11 +1,15 @@
 using Application_Layer.Commands.ConversationCommands.CreateConversation;
+using Application_Layer.Commands.ConversationCommands.MarkConversationAsRead;
 using Application_Layer.Commands.MessageCommands.SendMessage;
 using Application_Layer.DTOs;
 using Application_Layer.Queries.ConversationsQueries.GetAllConversations;
 using Application_Layer.Queries.ConversationsQueries.GetConversationById;
 using Application_Layer.Queries.MessagesQueries.GetMessagesForConversation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using API_Layer.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
 namespace API_Layer.Controllers
 {
@@ -14,10 +18,12 @@ namespace API_Layer.Controllers
     public class ConversationController : BaseApiController
     {
         private readonly IMediator _mediator;
+        private readonly IHubContext<ChatHub> _chatHub;
 
-        public ConversationController(IMediator mediator)
+        public ConversationController(IMediator mediator, IHubContext<ChatHub> chatHub)
         {
             _mediator = mediator;
+            _chatHub = chatHub;
         }
 
         [HttpGet]
@@ -63,6 +69,36 @@ namespace API_Layer.Controllers
             command.MessageDto.ConversationId = conversationId;
             var result = await _mediator.Send(command);
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPatch("{conversationId}/read")]
+        public async Task<IActionResult> MarkConversationAsRead(Guid conversationId)
+        {
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+
+            var command = new MarkConversationAsReadCommand
+            {
+                ConversationId = conversationId,
+                UserId = userId
+            };
+
+            var result = await _mediator.Send(command);
+            if (!result.Successful)
+                return BadRequest(result.Error);
+
+            var markedMessages = result.Data ?? [];
+            if (markedMessages.Count > 0)
+            {
+                await _chatHub.Clients.Group(conversationId.ToString()).SendAsync("ConversationReadBatch", new
+                {
+                    MessageIds = markedMessages.Select(msg => msg.MessageId),
+                    ReadAt = markedMessages.Max(msg => msg.ReadAt),
+                    ReadBy = userId
+                });
+            }
+
+            return Ok();
         }
     }
 }

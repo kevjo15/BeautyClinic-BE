@@ -12,6 +12,7 @@ public class NotificationModel
     public UserModel? User { get; set; }
     public Guid? BookingId { get; set; }
     public BookingModel? Booking { get; set; }
+    public Guid? ConversationId { get; set; }
 }
 
 

@@ -23,11 +23,11 @@ namespace API_Layer.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<NotificationDTO>>> GetUserNotifications()
+        public async Task<ActionResult<List<NotificationDTO>>> GetUserNotifications([FromQuery] int limit = 20)
         {
             if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
 
-            var query = new GetUserNotificationsQuery { UserId = userId };
+            var query = new GetUserNotificationsQuery { UserId = userId, Limit = Math.Clamp(limit, 1, 50) };
             var notifications = await _mediator.Send(query);
 
             return Ok(notifications);

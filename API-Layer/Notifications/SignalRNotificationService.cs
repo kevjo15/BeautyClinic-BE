@@ -54,7 +54,7 @@ namespace API_Layer.Notifications
                 Title = title,
                 Message = message,
                 Type = type,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 IsRead = false,
                 UserId = userId
             };

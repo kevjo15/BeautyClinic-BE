@@ -21,6 +21,7 @@ namespace Application_Layer.Commands.NotificationCommands.CreateNotification
         public async Task<OperationResult<NotificationDTO>> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
         {
             var notification = _mapper.Map<NotificationModel>(request);
+            notification.CreatedAt = DateTime.UtcNow;
 
             await _notificationRepository.CreateAsync(notification);
 

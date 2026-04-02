@@ -30,7 +30,9 @@ namespace Application_Layer.AutoMapper
             CreateMap<CreateBookingDTO, BookingModel>().ReverseMap();
             CreateMap<BookingModel, UpdateBookingDTO>().ReverseMap();
             CreateMap<MessageModel, SendMessageDTO>().ReverseMap();
-            CreateMap<NotificationModel, NotificationDTO>();
+            CreateMap<NotificationModel, NotificationDTO>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(
+                    src => new DateTimeOffset(DateTime.SpecifyKind(src.CreatedAt, DateTimeKind.Utc))));
             CreateMap<UserModel, EmployeeDTO>();
 
             // Notification mappings
