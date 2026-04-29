@@ -12,6 +12,7 @@ namespace Application_Layer.Interfaces
         Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end);
         Task<List<BookingModel>> GetByEmployeeAndRangeAsync(string employeeId, DateTime from, DateTime to);
         Task AddAsync(BookingModel booking);
+        Task<bool> TryAddIfNoConflictAsync(BookingModel booking);
         Task UpdateAsync(BookingModel booking);
         Task DeleteAsync(Guid id);
         Task<List<BookingModel>> GetAllAsync();

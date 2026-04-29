@@ -3,9 +3,11 @@ using Application_Layer.Commands.UserCommands.RefreshToken;
 using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.Commands.UserCommands.RevokeRefreshToken;
 using Application_Layer.DTOs;
+using API_Layer.Middleware;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace API_Layer.Controllers;
 
@@ -32,6 +34,7 @@ public class AuthController : BaseApiController
     }
 
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingExtensions.LoginPolicy)]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUserDTO)
     {

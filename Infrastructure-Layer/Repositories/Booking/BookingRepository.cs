@@ -3,6 +3,7 @@ using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Infrastructure_Layer.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Infrastructure_Layer.Repositories
 {
@@ -33,6 +34,33 @@ namespace Infrastructure_Layer.Repositories
         {
             await _context.Bookings.AddAsync(booking);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> TryAddIfNoConflictAsync(BookingModel booking)
+        {
+            try
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+
+                var conflict = await _context.Bookings.AnyAsync(b =>
+                    b.StartTime < booking.EndTime && b.EndTime > booking.StartTime);
+
+                if (conflict)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                await _context.Bookings.AddAsync(booking);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number == 1205)
+            {
+                // Deadlock - another transaction won, treat as conflict
+                return false;
+            }
         }
 
         public async Task UpdateAsync(BookingModel booking)

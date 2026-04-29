@@ -79,7 +79,11 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                     booking.ConversationId = conversation.Id;
                 }
 
-                await _bookingRepository.AddAsync(booking);
+                var added = await _bookingRepository.TryAddIfNoConflictAsync(booking);
+                if (!added)
+                {
+                    return OperationResult<BookingModel>.Failure("Den valda tiden är inte längre tillgänglig. Välj en annan tid.");
+                }
 
                 // 3) Spara notifikation i DB
                 var title = "Bokningsbekräftelse";
