@@ -91,7 +91,7 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             // Assert
             Assert.IsFalse(result.Successful);
-            Assert.That(result.Error, Is.EqualTo("Användaren existerar inte."));
+            Assert.That(result.Error, Is.EqualTo("Felaktigt email eller lösenord."));
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             // Assert
             Assert.IsFalse(result.Successful);
-            Assert.That(result.Error, Is.EqualTo("Felaktigt lösenord."));
+            Assert.That(result.Error, Is.EqualTo("Felaktigt email eller lösenord."));
         }
 
         [Test]

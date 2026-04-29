@@ -20,13 +20,20 @@ public sealed class AzureBlobFileService : IFileService
         _configuration = configuration;
     }
 
+    private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+    private static readonly HashSet<string> AllowedContentTypes = ["image/jpeg", "image/png", "image/webp"];
+
     public async Task<(string blobPath, string sasUrl)> UploadServiceImageAsync(FileUploadRequest file, CancellationToken ct)
     {
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(ext) || !AllowedContentTypes.Contains(file.ContentType.ToLowerInvariant()))
+            throw new InvalidOperationException("Only image files (jpg, png, webp) are allowed.");
+
         var container = GetContainerName();
         var containerClient = _blobServiceClient.GetBlobContainerClient(container);
         await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: ct);
 
-        var blobName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var blobName = $"{Guid.NewGuid()}{ext}";
         var blobClient = containerClient.GetBlobClient(blobName);
 
         await using var stream = new MemoryStream(file.Content, writable: false);

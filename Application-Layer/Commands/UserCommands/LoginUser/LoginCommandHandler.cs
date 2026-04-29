@@ -27,15 +27,11 @@ namespace Application_Layer.Commands.UserCommands.Login
             try
             {
                 var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
-                if (existingUser == null)
+                var passwordValid = existingUser != null &&
+                    await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
+                if (existingUser == null || !passwordValid)
                 {
-                    return OperationResult<AuthTokenPairDTO>.Failure("Användaren existerar inte.");
-                }
-
-                var passwordValid = await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
-                if (!passwordValid)
-                {
-                    return OperationResult<AuthTokenPairDTO>.Failure("Felaktigt lösenord.");
+                    return OperationResult<AuthTokenPairDTO>.Failure("Felaktigt email eller lösenord.");
                 }
 
                 // Generate refresh token using the new service (hashed and stored in DB)
