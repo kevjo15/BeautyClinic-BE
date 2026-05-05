@@ -5,6 +5,7 @@ namespace Application_Layer.Queries.NotificationQueries
 {
     public class GetUserNotificationsQuery : IRequest<List<NotificationDTO>>
     {
-        public string UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public int Limit { get; set; } = 20;
     }
 }

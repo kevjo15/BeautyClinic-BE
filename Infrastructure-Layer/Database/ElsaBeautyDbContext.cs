@@ -1,20 +1,17 @@
 ﻿﻿using Domain_Layer.Models;
+using Infrastructure_Layer.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Infrastructure_Layer.Database
 {
-    public class ElsaBeautyDbContext : IdentityDbContext<UserModel>
+    public class ElsaBeautyDbContext : IdentityDbContext<ApplicationUser>
     {
         public ElsaBeautyDbContext(DbContextOptions<ElsaBeautyDbContext> options) : base(options)
         {
         }
 
-        public DbSet<UserModel> User { get; set; }
         public DbSet<ServiceModel> Services { get; set; }
         public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<BookingModel> Bookings { get; set; }
@@ -22,7 +19,8 @@ namespace Infrastructure_Layer.Database
         public DbSet<MessageModel> Messages { get; set; }
         public DbSet<NotificationModel> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
-
+        public DbSet<EmployeeScheduleModel> EmployeeSchedules { get; set; }
+        public DbSet<EmployeeWorkDayModel> EmployeeWorkDays { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -45,17 +43,17 @@ namespace Infrastructure_Layer.Database
                     c => c == null ? new List<Guid>() : c.ToList());
 
                 entity.Property(c => c.ParticipantIds)
-                      .HasConversion(
-                          v => string.Join(',', v ?? new List<Guid>()),
-                          v => v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                                .Select(Guid.Parse)
-                                .ToList())
-                      .Metadata.SetValueComparer(guidListComparer);
+                    .HasConversion(
+                        v => string.Join(',', v ?? new List<Guid>()),
+                        v => v.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(Guid.Parse)
+                            .ToList())
+                    .Metadata.SetValueComparer(guidListComparer);
 
                 entity.HasMany(c => c.Messages)
-                      .WithOne()
-                      .HasForeignKey(m => m.ConversationId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                    .WithOne()
+                    .HasForeignKey(m => m.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<MessageModel>(entity =>
@@ -66,35 +64,38 @@ namespace Infrastructure_Layer.Database
             builder.Entity<NotificationModel>(entity =>
             {
                 entity.HasKey(n => n.Id);
-                entity.HasOne(n => n.User)
-                      .WithMany()
-                      .HasForeignKey(n => n.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.Ignore(n => n.User);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(n => n.Booking)
-                      .WithMany()
-                      .HasForeignKey(n => n.BookingId)
-                      .OnDelete(DeleteBehavior.SetNull);
+                    .WithMany()
+                    .HasForeignKey(n => n.BookingId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             builder.Entity<BookingModel>(entity =>
             {
                 entity.HasKey(b => b.Id);
+                entity.Ignore(b => b.User);
+                entity.Ignore(b => b.Employee);
 
-                entity.HasOne(b => b.User)
-                      .WithMany()
-                      .HasForeignKey(b => b.UserId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(b => b.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(b => b.Employee)
-                      .WithMany()
-                      .HasForeignKey(b => b.EmployeeId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(b => b.EmployeeId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(b => b.Service)
-                      .WithMany()
-                      .HasForeignKey(b => b.ServiceId)
-                      .OnDelete(DeleteBehavior.Restrict);
+                    .WithMany()
+                    .HasForeignKey(b => b.ServiceId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             builder.Entity<UserRefreshToken>(entity =>
@@ -102,25 +103,45 @@ namespace Infrastructure_Layer.Database
                 entity.HasKey(rt => rt.Id);
 
                 entity.Property(rt => rt.TokenHash)
-                      .IsRequired()
-                      .HasMaxLength(128);
+                    .IsRequired()
+                    .HasMaxLength(128);
 
                 entity.Property(rt => rt.UserId)
-                      .IsRequired();
+                    .IsRequired();
 
                 entity.HasIndex(rt => rt.TokenHash);
                 entity.HasIndex(rt => rt.UserId);
                 entity.HasIndex(rt => new { rt.UserId, rt.RevokedAt });
 
-                entity.HasOne(rt => rt.User)
-                      .WithMany()
-                      .HasForeignKey(rt => rt.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.Ignore(rt => rt.User);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(rt => rt.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                // Ignore computed properties
                 entity.Ignore(rt => rt.IsExpired);
                 entity.Ignore(rt => rt.IsRevoked);
                 entity.Ignore(rt => rt.IsActive);
+            });
+
+            builder.Entity<EmployeeScheduleModel>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(s => s.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(s => s.EmployeeId);
+            });
+
+            builder.Entity<EmployeeWorkDayModel>(entity =>
+            {
+                entity.HasKey(w => w.Id);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(w => w.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(w => new { w.EmployeeId, w.Date }).IsUnique();
             });
 
             base.OnModelCreating(builder);

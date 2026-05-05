@@ -1,10 +1,10 @@
 ﻿using Application_Layer.Commands.UserCommands.RegisterUser;
-using Application_Layer.DTO_s;
+using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
-using Microsoft.AspNetCore.Identity;
 
 namespace Test_Layer.UserTests.UserUnitTests
 {
@@ -47,17 +47,15 @@ namespace Test_Layer.UserTests.UserUnitTests
             };
             A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
 
-            // Returnera ett lyckat IdentityResult
-            var identityResult = IdentityResult.Success;
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
-                .Returns(Task.FromResult(identityResult));
+                .Returns(Task.FromResult(OperationResult.Success()));
 
             // Act
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsTrue(result.Success);
-            Assert.That(result.CreatedUser.Email, Is.EqualTo(userModel.Email));
+            Assert.IsTrue(result.Successful);
+            Assert.That(result.Data?.Email, Is.EqualTo(userModel.Email));
         }
 
         [Test]
@@ -81,18 +79,15 @@ namespace Test_Layer.UserTests.UserUnitTests
 
             A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
 
-            // Simulera att användarregistreringen misslyckas och returnera IdentityResult med fel
-            var identityResult = IdentityResult.Failed(new IdentityError { Description = "User already exists" });
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
-                .Returns(Task.FromResult(identityResult));
+                .Returns(Task.FromResult(OperationResult.Failure("User already exists")));
 
             // Act
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsFalse(result.Success);
-            Assert.That(result.Errors.Count, Is.EqualTo(1));  // Kontrollera att exakt ett fel returneras
-            Assert.That(result.Errors[0], Is.EqualTo("User already exists"));  // Kontrollera att felmeddelandet är korrekt
+            Assert.IsFalse(result.Successful);
+            Assert.That(result.Error, Is.EqualTo("User already exists"));
 
             // Kontrollera att rätt metoder anropades exakt en gång
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
@@ -132,8 +127,8 @@ namespace Test_Layer.UserTests.UserUnitTests
             var result = await _handler.Handle(command, default);
 
             // Assert
-            Assert.IsFalse(result.Success);
-            Assert.IsTrue(result.Errors.Contains("An unexpected error occurred: Unexpected error"));
+            Assert.IsFalse(result.Successful);
+            Assert.That(result.Error, Is.EqualTo("An unexpected error occurred: Unexpected error"));
         }
 
     }

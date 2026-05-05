@@ -1,5 +1,6 @@
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
+using Infrastructure_Layer.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure_Layer.DataSeeder
@@ -7,10 +8,10 @@ namespace Infrastructure_Layer.DataSeeder
     public class DataSeeder
     {
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<UserModel> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ElsaBeautyDbContext _context;
 
-        public DataSeeder(RoleManager<IdentityRole> roleManager, UserManager<UserModel> userManager, ElsaBeautyDbContext context)
+        public DataSeeder(RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, ElsaBeautyDbContext context)
         {
             _roleManager = roleManager;
             _userManager = userManager;
@@ -19,7 +20,6 @@ namespace Infrastructure_Layer.DataSeeder
 
         public async Task SeedAsync()
         {
-            // Seed roles
             var roles = new[] { "Admin", "Customer", "Employee" };
             foreach (var role in roles)
             {
@@ -29,18 +29,18 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed admin user
-            var adminEmail = "admin@example.com";
+            var adminEmail = "admin@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(adminEmail) == null)
             {
-                var adminUser = new UserModel
+                var adminUser = new ApplicationUser
                 {
-                    UserName = "admin",
+                    UserName = adminEmail,
                     Email = adminEmail,
-                    FirstName = "Admin",
-                    LastName = "Admin"
+                    FirstName = "Elsa",
+                    LastName = "Admin",
+                    PhoneNumber = "0701234567"
                 };
-                var result = await _userManager.CreateAsync(adminUser, "AdminPassword123!");
+                var result = await _userManager.CreateAsync(adminUser, "Password123!");
 
                 if (result.Succeeded)
                 {
@@ -48,16 +48,16 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed employee user
-            var employeeEmail = "kevin.jorgensen123@gmail.com";
+            var employeeEmail = "employee@elsabeauty.se";
             if (await _userManager.FindByEmailAsync(employeeEmail) == null)
             {
-                var employeeUser = new UserModel
+                var employeeUser = new ApplicationUser
                 {
-                    UserName = "kevin96",
+                    UserName = employeeEmail,
                     Email = employeeEmail,
-                    FirstName = "Kevin",
-                    LastName = "Jorgensen"
+                    FirstName = "Emma",
+                    LastName = "Andersson",
+                    PhoneNumber = "0709876543"
                 };
                 var result = await _userManager.CreateAsync(employeeUser, "Password123!");
 
@@ -67,7 +67,45 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
-            // Seed categories and services
+            var customerEmail = "customer@elsabeauty.se";
+            if (await _userManager.FindByEmailAsync(customerEmail) == null)
+            {
+                var customerUser = new ApplicationUser
+                {
+                    UserName = customerEmail,
+                    Email = customerEmail,
+                    FirstName = "Karin",
+                    LastName = "Karlsson",
+                    PhoneNumber = "0705555555"
+                };
+                var result = await _userManager.CreateAsync(customerUser, "Password123!");
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(customerUser, "Customer");
+                }
+            }
+
+            if (!_context.EmployeeSchedules.Any())
+            {
+                var employee = await _userManager.FindByEmailAsync(employeeEmail);
+                if (employee != null)
+                {
+                    var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+                    var schedules = weekdays.Select(day => new EmployeeScheduleModel
+                    {
+                        Id = Guid.NewGuid(),
+                        EmployeeId = employee.Id,
+                        DayOfWeek = day,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(17, 0, 0)
+                    }).ToList();
+
+                    _context.EmployeeSchedules.AddRange(schedules);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             if (!_context.Categories.Any())
             {
                 var categories = new List<CategoryModel>

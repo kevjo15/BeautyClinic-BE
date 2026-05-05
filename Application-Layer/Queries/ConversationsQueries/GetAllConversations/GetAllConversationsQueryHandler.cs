@@ -1,10 +1,10 @@
-using Application.Features.Conversations.Queries;
+using Application_Layer.Queries.ConversationsQueries.GetAllConversations;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
 using MediatR;
 
-namespace Application.Features.Conversations.Handlers
+namespace Application_Layer.Queries.ConversationsQueries.GetAllConversations
 {
     public class GetAllConversationsQueryHandler : IRequestHandler<GetAllConversationsQuery, List<ConversationDTO>>
     {

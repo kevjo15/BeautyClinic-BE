@@ -1,10 +1,12 @@
 using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
+using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {
-    public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResult>
+    public class LoginCommandHandler : IRequestHandler<LoginCommand, OperationResult<AuthTokenPairDTO>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
@@ -20,20 +22,16 @@ namespace Application_Layer.Commands.UserCommands.Login
             _refreshTokenService = refreshTokenService;
         }
 
-        public async Task<LoginResult> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<AuthTokenPairDTO>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             try
             {
                 var existingUser = await _userRepository.FindByEmailAsync(request.LoginUserDTO.Email);
-                if (existingUser == null)
+                var passwordValid = existingUser != null &&
+                    await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
+                if (existingUser == null || !passwordValid)
                 {
-                    return CreateLoginResult(false, "Användaren existerar inte.");
-                }
-
-                var passwordValid = await _userRepository.CheckPasswordAsync(existingUser, request.LoginUserDTO.Password);
-                if (!passwordValid)
-                {
-                    return CreateLoginResult(false, "Felaktigt lösenord.");
+                    return OperationResult<AuthTokenPairDTO>.Failure("Felaktigt email eller lösenord.");
                 }
 
                 // Generate refresh token using the new service (hashed and stored in DB)
@@ -42,20 +40,17 @@ namespace Application_Layer.Commands.UserCommands.Login
                     request.IpAddress,
                     request.UserAgent);
 
-                // Generate access token
-                var accessToken = await _jwtTokenGenerator.GenerateToken(existingUser);
+                var roles = await _userRepository.GetRolesAsync(existingUser);
 
-                return CreateLoginResult(true, null, accessToken, rawRefreshToken);
+                // Generate access token
+                var accessToken = await _jwtTokenGenerator.GenerateToken(existingUser.Id, existingUser.Email, roles);
+
+                return OperationResult<AuthTokenPairDTO>.Success(new AuthTokenPairDTO(accessToken, rawRefreshToken));
             }
             catch (Exception ex)
             {
-                return CreateLoginResult(false, $"An unexpected error occurred: {ex.Message}");
+                return OperationResult<AuthTokenPairDTO>.Failure($"An unexpected error occurred: {ex.Message}");
             }
-        }
-
-        private LoginResult CreateLoginResult(bool successful, string? error, string? token = null, string? refreshToken = null)
-        {
-            return new LoginResult { Successful = successful, Error = error, Token = token, RefreshToken = refreshToken };
         }
     }
 }

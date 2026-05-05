@@ -1,10 +1,10 @@
-using Application.Features.Conversations.Commands;
+using Application_Layer.Commands.ConversationCommands.CreateConversation;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
 using MediatR;
 
-namespace Application.Features.Conversations.Handlers
+namespace Application_Layer.Commands.ConversationCommands.CreateConversation
 {
     public class CreateConversationCommandHandler : IRequestHandler<CreateConversationCommand, ConversationDTO>
     {

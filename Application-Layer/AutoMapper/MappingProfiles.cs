@@ -1,6 +1,4 @@
-﻿﻿using Application_Layer.DTO_s;
 using Application_Layer.DTOs;
-using ApplicationLayer.DTOs;
 using AutoMapper;
 using Domain_Layer.Models;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
@@ -21,6 +19,7 @@ namespace Application_Layer.AutoMapper
             CreateMap<CategoryModel, CategoryWithServicesDTO>();
             CreateMap<UserModel, UserNameDTO>();
             CreateMap<ServiceDTO, ServiceModel>().ReverseMap();
+            CreateMap<UserModel, BookingUserDTO>();
             CreateMap<BookingModel, BookingDTO>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
                     src.User != null ? $"{src.User.FirstName} {src.User.LastName}".Trim() : null))
@@ -28,11 +27,18 @@ namespace Application_Layer.AutoMapper
                     src.Employee != null ? $"{src.Employee.FirstName} {src.Employee.LastName}".Trim() : null))
                 .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src =>
                     src.Service != null ? src.Service.Name : null))
-                .ReverseMap();
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.Employee, opt => opt.MapFrom(src => src.Employee))
+                .ReverseMap()
+                .ForMember(dest => dest.User, opt => opt.Ignore())
+                .ForMember(dest => dest.Employee, opt => opt.Ignore())
+                .ForMember(dest => dest.Service, opt => opt.Ignore());
             CreateMap<CreateBookingDTO, BookingModel>().ReverseMap();
             CreateMap<BookingModel, UpdateBookingDTO>().ReverseMap();
             CreateMap<MessageModel, SendMessageDTO>().ReverseMap();
-            CreateMap<NotificationModel, NotificationDTO>();
+            CreateMap<NotificationModel, NotificationDTO>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(
+                    src => new DateTimeOffset(DateTime.SpecifyKind(src.CreatedAt, DateTimeKind.Utc))));
             CreateMap<UserModel, EmployeeDTO>();
 
             // Notification mappings
@@ -40,8 +46,6 @@ namespace Application_Layer.AutoMapper
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => Guid.NewGuid()))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => DateTime.UtcNow))
                 .ForMember(dest => dest.IsRead, opt => opt.MapFrom(src => false));
-            CreateMap<NotificationModel, CreateNotificationResult>();
-
             // Category
             CreateMap<CategoryModel, CategoryNameDTO>();
 

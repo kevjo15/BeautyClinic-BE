@@ -1,6 +1,8 @@
 using Application_Layer.Commands.UserCommands.RefreshToken;
+using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
 
@@ -52,17 +54,20 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             };
 
             A.CallTo(() => _refreshTokenService.RotateRefreshTokenAsync(oldRefreshToken, "127.0.0.1", "Test-Agent"))
-                .Returns((newRefreshToken, newTokenEntity));
+                .Returns(OperationResult<RefreshTokenRotationResultDTO>.Success(
+                    new RefreshTokenRotationResultDTO(newRefreshToken, newTokenEntity)));
             A.CallTo(() => _userRepository.FindByIdAsync(userId)).Returns(user);
-            A.CallTo(() => _jwtTokenGenerator.GenerateToken(user)).Returns("new_access_token");
+            A.CallTo(() => _userRepository.GetRolesAsync(user)).Returns(new List<string> { "Customer" });
+            A.CallTo(() => _jwtTokenGenerator.GenerateToken(user.Id, user.Email, A<IEnumerable<string>>._))
+                .Returns("new_access_token");
 
             // Act
             var result = await _handler.Handle(command, default);
 
             // Assert
             Assert.IsTrue(result.Successful);
-            Assert.That(result.AccessToken, Is.EqualTo("new_access_token"));
-            Assert.That(result.RefreshToken, Is.EqualTo("new_refresh_token"));
+            Assert.That(result.Data?.AccessToken, Is.EqualTo("new_access_token"));
+            Assert.That(result.Data?.RefreshToken, Is.EqualTo("new_refresh_token"));
         }
 
         [Test]
@@ -73,7 +78,7 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             var command = new RefreshAccessTokenCommand(invalidToken);
 
             A.CallTo(() => _refreshTokenService.RotateRefreshTokenAsync(invalidToken, A<string>._, A<string>._))
-                .Returns(((string, UserRefreshToken)?)null);
+                .Returns(OperationResult<RefreshTokenRotationResultDTO>.Failure("Invalid or expired refresh token."));
 
             // Act
             var result = await _handler.Handle(command, default);
@@ -114,7 +119,8 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             };
 
             A.CallTo(() => _refreshTokenService.RotateRefreshTokenAsync(refreshToken, A<string>._, A<string>._))
-                .Returns(("new_token", newTokenEntity));
+                .Returns(OperationResult<RefreshTokenRotationResultDTO>.Success(
+                    new RefreshTokenRotationResultDTO("new_token", newTokenEntity)));
             A.CallTo(() => _userRepository.FindByIdAsync(userId)).Returns((UserModel?)null);
 
             // Act

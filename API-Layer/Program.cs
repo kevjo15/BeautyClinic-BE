@@ -1,6 +1,6 @@
-using Domain_Layer.Models;
 using Infrastructure_Layer;
 using Infrastructure_Layer.Database;
+using Infrastructure_Layer.Identity;
 using Microsoft.AspNetCore.Identity;
 using Application_Layer;
 using Microsoft.IdentityModel.Tokens;
@@ -8,11 +8,12 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Security.Claims;
-using Microsoft.Extensions.DependencyInjection;
 using API_Layer.Hubs;
+using API_Layer.Middleware;
+using API_Layer.Notifications;
 using Application_Layer.Interfaces;
-using API_Layer.Services;
 using Microsoft.EntityFrameworkCore;
+using Infrastructure_Layer.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,8 @@ builder.Services.AddInfrastructureLayer(builder.Configuration);
 
 // L�s in JWT-inst�llningar fr�n appsettings.json
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var key = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
+var jwtSecret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JwtSettings:Secret is missing.");
+var key = Encoding.ASCII.GetBytes(jwtSecret);
 
 
 // Konfigurera JWT Authentication
@@ -69,11 +71,13 @@ builder.Services.AddSingleton(tokenValidationParameters);
 builder.Services.AddAuthorization();
 
 // Konfigurera Identity
-builder.Services.AddDefaultIdentity<UserModel>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ElsaBeautyDbContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddRateLimiting();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -176,6 +180,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseErrorHandlingMiddleware();
+
+app.UseRateLimiter();
 
 app.UseHttpsRedirection();
 

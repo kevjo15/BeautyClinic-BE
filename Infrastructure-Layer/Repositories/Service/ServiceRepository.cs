@@ -1,4 +1,5 @@
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
@@ -24,31 +25,42 @@ namespace Infrastructure_Layer.Repositories.Service
             return await _context.Services.ToListAsync();
         }
 
-        public async Task<ServiceModel> GetServiceByIdAsync(Guid serviceId)
+        public async Task<ServiceModel?> GetServiceByIdAsync(Guid serviceId)
         {
             return await _context.Services.FindAsync(serviceId);
         }
 
-        public async Task<bool> AddServiceAsync(ServiceModel service)
+        public async Task<OperationResult<ServiceModel>> AddServiceAsync(ServiceModel service)
         {
             _context.Services.Add(service);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return OperationResult<ServiceModel>.Success(service);
         }
 
-        public async Task<bool> UpdateServiceAsync(ServiceModel service)
+        public async Task<OperationResult<ServiceModel>> UpdateServiceAsync(ServiceModel service)
         {
+            var existingService = await _context.Services.FindAsync(service.Id);
+            if (existingService == null)
+            {
+                return OperationResult<ServiceModel>.Failure("Service not found.");
+            }
+
             _context.Services.Update(service);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return OperationResult<ServiceModel>.Success(service);
         }
 
-        public async Task DeleteServiceAsync(Guid id)
+        public async Task<OperationResult> DeleteServiceAsync(Guid id)
         {
             var service = await _context.Services.FindAsync(id);
-            if (service != null)
+            if (service == null)
             {
-                _context.Services.Remove(service);
-                await _context.SaveChangesAsync();
+                return OperationResult.Failure("Service not found.");
             }
+
+            _context.Services.Remove(service);
+            await _context.SaveChangesAsync();
+            return OperationResult.Success();
         }
 
         public async Task<IEnumerable<ServiceModel>> GetServicesByCategoryAsync(Guid categoryId)

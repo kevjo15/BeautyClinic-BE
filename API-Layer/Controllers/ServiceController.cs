@@ -8,21 +8,20 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application_Layer.Queries.ServiceQueries.GetAllServices;
-using Application_Layer.DTO_s;
-using AutoMapper;
+using Application_Layer.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
-using Application_Layer.Services;
 using Microsoft.AspNetCore.Http;
-using Application_Layer.Features.Services.Commands.UploadServiceImage;
-using Application_Layer.Features.Services.Queries.GetAllServicesWithSas;
+using Application_Layer.Commands.ServiceCommands.UploadServiceImage;
+using Application_Layer.Queries.ServiceQueries.GetAllServicesWithSas;
 using System.Threading;
+using System.IO;
 
 namespace API_Layer.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/services")]
     [ApiController]
-    public class ServiceController : ControllerBase
+    public class ServiceController : BaseApiController
     {
         private readonly IMediator _mediator;
 
@@ -31,7 +30,7 @@ namespace API_Layer.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("GetAllServices")]
+        [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAllServices()
         {
@@ -39,7 +38,7 @@ namespace API_Layer.Controllers
             return Ok(services);
         }
 
-        [HttpGet("GetAllServicesWithSas")]
+        [HttpGet("with-sas")]
         [AllowAnonymous]
         public async Task<ActionResult<IReadOnlyList<ServiceDTO>>> GetAllWithSas(CancellationToken ct)
         {
@@ -47,36 +46,33 @@ namespace API_Layer.Controllers
         }
 
         // POST: api/services/create
-        [HttpPost("create")]
+        [HttpPost]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> CreateService([FromBody] ServiceDTO serviceDto)
         {
             var command = new CreateServiceCommand(serviceDto);
             var result = await _mediator.Send(command);
-            if (!result.Success) return BadRequest(result.Message);
-            return Ok(new { result.Message, result.CreatedService });
+            return HandleResult(result);
         }
 
         // PUT: api/services/update/{id}
-        [HttpPut("update/{id}")]
+        [HttpPut("{id}")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> UpdateService(Guid id, [FromBody] ServiceDTO serviceDto)
         {
             var command = new UpdateServiceCommand(id, serviceDto);
             var result = await _mediator.Send(command);
-            if (!result.Success) return BadRequest(result.Message);
-            return Ok(new { result.Message, result.UpdatedService });
+            return HandleResult(result);
         }
 
         // DELETE: api/services/delete/{id}
-        [HttpDelete("delete/{id}")]
+        [HttpDelete("{id}")]
         [Authorize(Roles = "Admin,Employee")]
         public async Task<IActionResult> DeleteService(Guid id)
         {
             var command = new DeleteServiceCommand(id);
             var result = await _mediator.Send(command);
-            if (!result) return BadRequest("Failed to delete service.");
-            return Ok("Service deleted successfully.");
+            return HandleResult(result, () => Ok("Service deleted successfully."));
         }
 
         [HttpGet("search")]
@@ -88,7 +84,7 @@ namespace API_Layer.Controllers
             return Ok(services);
         }
 
-        [HttpGet("by-category/{categoryId}")]
+        [HttpGet("category/{categoryId}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetServicesByCategory(Guid categoryId)
         {
@@ -102,7 +98,17 @@ namespace API_Layer.Controllers
         public async Task<ActionResult<UploadServiceImageResult>> UploadImage([FromRoute] Guid serviceId, IFormFile file, CancellationToken ct)
         {
             if (file is null) return BadRequest("file is required");
-            var res = await _mediator.Send(new UploadServiceImageCommand(serviceId, file), ct);
+
+            await using var stream = file.OpenReadStream();
+            using var memoryStream = new MemoryStream();
+            await stream.CopyToAsync(memoryStream, ct);
+
+            var upload = new FileUploadRequest(
+                file.FileName,
+                file.ContentType ?? "application/octet-stream",
+                memoryStream.ToArray());
+
+            var res = await _mediator.Send(new UploadServiceImageCommand(serviceId, upload), ct);
             return Ok(res);
         }
     }

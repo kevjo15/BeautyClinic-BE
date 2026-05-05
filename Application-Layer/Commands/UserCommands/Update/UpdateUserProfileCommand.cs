@@ -1,9 +1,10 @@
-﻿using Application_Layer.DTO_s;
+﻿using Application_Layer.DTOs;
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.UserCommands.Update
 {
-    public class UpdateUserProfileCommand : IRequest<UpdateUserProfileResult>
+    public class UpdateUserProfileCommand : IRequest<OperationResult<UpdateUserProfileDTO>>
     {
         public string UserId { get; set; }
 

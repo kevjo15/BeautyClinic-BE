@@ -10,8 +10,10 @@ namespace Application_Layer.Commands.UserCommands.Login
             RuleFor(x => x.LoginUserDTO.Email)
                 .MustBeValidEmail();
 
+            // On login we only verify the field is provided.
+            // Password complexity rules belong on registration only.
             RuleFor(x => x.LoginUserDTO.Password)
-                .MustBeValidPassword();
+                .NotEmpty().WithMessage("Password is required.");
         }
     }
 }

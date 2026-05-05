@@ -1,12 +1,13 @@
 using Application_Layer.Interfaces;
 using Application_Layer.DTOs;
 using AutoMapper;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using MediatR;
 
 namespace Application_Layer.Commands.BookingCommands.AssignEmployee
 {
-    public class AssignEmployeeCommandHandler : IRequestHandler<AssignEmployeeCommand, BookingDTO>
+    public class AssignEmployeeCommandHandler : IRequestHandler<AssignEmployeeCommand, OperationResult<BookingDTO>>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IConversationRepository _conversationRepository;
@@ -22,13 +23,18 @@ namespace Application_Layer.Commands.BookingCommands.AssignEmployee
             _mapper = mapper;
         }
 
-        public async Task<BookingDTO> Handle(AssignEmployeeCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<BookingDTO>> Handle(AssignEmployeeCommand request, CancellationToken cancellationToken)
         {
             var booking = await _bookingRepository.GetByIdAsync(request.BookingId);
             if (booking == null)
             {
-                throw new KeyNotFoundException($"Booking {request.BookingId} not found.");
+                return OperationResult<BookingDTO>.Failure($"Booking {request.BookingId} not found.");
             }
+
+            var hasConflict = await _bookingRepository.HasConflictAsync(
+                booking.Id, request.EmployeeId, booking.StartTime, booking.EndTime);
+            if (hasConflict)
+                return OperationResult<BookingDTO>.Failure("Medarbetaren har redan en bokning på den valda tiden.");
 
             booking.EmployeeId = request.EmployeeId;
 
@@ -57,7 +63,7 @@ namespace Application_Layer.Commands.BookingCommands.AssignEmployee
             }
 
             await _bookingRepository.UpdateAsync(booking);
-            return _mapper.Map<BookingDTO>(booking);
+            return OperationResult<BookingDTO>.Success(_mapper.Map<BookingDTO>(booking));
         }
     }
 }

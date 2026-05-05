@@ -1,10 +1,10 @@
-using ApplicationLayer.DTOs;
+using Application_Layer.DTOs;
 using MediatR;
 
-namespace Application.Features.MessageCommands.SendMessage
+namespace Application_Layer.Commands.MessageCommands.SendMessage
 {
     public class SendMessageCommand : IRequest<Guid>
     {
-        public SendMessageDTO MessageDto { get; set; }
+        public SendMessageDTO MessageDto { get; set; } = new();
     }
 }
