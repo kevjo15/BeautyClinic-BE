@@ -1,4 +1,4 @@
-﻿using Application_Layer.DTO_s;
+﻿using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
 using AutoMapper;
 using MediatR;

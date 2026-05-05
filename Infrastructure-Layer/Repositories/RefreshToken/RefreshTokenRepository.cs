@@ -24,7 +24,6 @@ namespace Infrastructure_Layer.Repositories.RefreshToken
         public async Task<UserRefreshToken?> GetByTokenHashAsync(string tokenHash)
         {
             return await _context.UserRefreshTokens
-                .Include(rt => rt.User)
                 .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
         }
 

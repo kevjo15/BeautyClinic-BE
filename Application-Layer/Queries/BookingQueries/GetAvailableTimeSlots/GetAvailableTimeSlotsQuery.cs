@@ -6,19 +6,22 @@ namespace Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots
     public class GetAvailableTimeSlotsQuery : IRequest<List<AvailableTimeSlotDTO>>
     {
         public Guid ServiceId { get; set; }
+        public string EmployeeId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        public GetAvailableTimeSlotsQuery(Guid serviceId, DateTime? startDate = null)
+        public GetAvailableTimeSlotsQuery(Guid serviceId, string employeeId, DateTime? startDate = null)
         {
             ServiceId = serviceId;
+            EmployeeId = employeeId;
             StartDate = (startDate ?? DateTime.Today).Date;
-            EndDate = StartDate.AddDays(7); // Get a week's worth of slots by default
+            EndDate = StartDate.AddDays(7);
         }
 
-        public GetAvailableTimeSlotsQuery(Guid serviceId, DateTime startDate, DateTime endDate)
+        public GetAvailableTimeSlotsQuery(Guid serviceId, string employeeId, DateTime startDate, DateTime endDate)
         {
             ServiceId = serviceId;
+            EmployeeId = employeeId;
             StartDate = startDate.Date;
             EndDate = endDate.Date;
         }

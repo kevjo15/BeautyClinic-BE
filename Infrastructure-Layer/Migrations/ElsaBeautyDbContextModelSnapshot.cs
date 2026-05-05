@@ -94,6 +94,59 @@ namespace Infrastructure_Layer.Migrations
                     b.ToTable("Conversations");
                 });
 
+            modelBuilder.Entity("Domain_Layer.Models.EmployeeScheduleModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmployeeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.ToTable("EmployeeSchedules");
+                });
+
+            modelBuilder.Entity("Domain_Layer.Models.EmployeeWorkDayModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("EmployeeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("EmployeeWorkDays");
+                });
+
             modelBuilder.Entity("Domain_Layer.Models.MessageModel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -130,6 +183,9 @@ namespace Infrastructure_Layer.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ConversationId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -196,7 +252,57 @@ namespace Infrastructure_Layer.Migrations
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("Domain_Layer.Models.UserModel", b =>
+            modelBuilder.Entity("Domain_Layer.Models.UserRefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RevokedReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "RevokedAt");
+
+                    b.ToTable("UserRefreshTokens");
+                });
+
+            modelBuilder.Entity("Infrastructure_Layer.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -268,56 +374,6 @@ namespace Infrastructure_Layer.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Domain_Layer.Models.UserRefreshToken", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedByIp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ReplacedByTokenHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RevokedByIp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RevokedReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TokenHash")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("UserAgent")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TokenHash");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "RevokedAt");
-
-                    b.ToTable("UserRefreshTokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -459,7 +515,7 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Domain_Layer.Models.BookingModel", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.UserModel", "Employee")
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -470,17 +526,31 @@ namespace Infrastructure_Layer.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain_Layer.Models.UserModel", "User")
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Employee");
-
                     b.Navigation("Service");
+                });
 
-                    b.Navigation("User");
+            modelBuilder.Entity("Domain_Layer.Models.EmployeeScheduleModel", b =>
+                {
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain_Layer.Models.EmployeeWorkDayModel", b =>
+                {
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Domain_Layer.Models.MessageModel", b =>
@@ -499,15 +569,13 @@ namespace Infrastructure_Layer.Migrations
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("Domain_Layer.Models.UserModel", "User")
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Booking");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain_Layer.Models.ServiceModel", b =>
@@ -521,13 +589,11 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Domain_Layer.Models.UserRefreshToken", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.UserModel", "User")
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -541,7 +607,7 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.UserModel", null)
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -550,7 +616,7 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.UserModel", null)
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -565,7 +631,7 @@ namespace Infrastructure_Layer.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain_Layer.Models.UserModel", null)
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -574,7 +640,7 @@ namespace Infrastructure_Layer.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Domain_Layer.Models.UserModel", null)
+                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

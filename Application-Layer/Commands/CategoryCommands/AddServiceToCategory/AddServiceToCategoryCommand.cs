@@ -1,8 +1,9 @@
+using Domain_Layer.Common;
 using MediatR;
 
 namespace Application_Layer.Commands.CategoryCommands.AddServiceToCategory
 {
-    public class AddServiceToCategoryCommand : IRequest<AddServiceToCategoryResult>
+    public class AddServiceToCategoryCommand : IRequest<OperationResult>
     {
         public Guid CategoryId { get; }
         public Guid ServiceId { get; }

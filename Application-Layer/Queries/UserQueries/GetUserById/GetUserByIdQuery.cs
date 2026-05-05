@@ -1,4 +1,4 @@
-﻿using Application_Layer.DTO_s;
+﻿using Application_Layer.DTOs;
 using MediatR;
 
 namespace Application_Layer.Queries.UserQueries.GetUserById

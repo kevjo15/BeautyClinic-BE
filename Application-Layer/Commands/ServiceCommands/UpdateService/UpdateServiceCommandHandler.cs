@@ -1,10 +1,12 @@
 using MediatR;
 using AutoMapper;
 using Application_Layer.Interfaces;
+using Domain_Layer.Common;
+using Domain_Layer.Models;
 
 namespace Application_Layer.Commands.ServiceCommands.UpdateService
 {
-    public class UpdateServiceCommandHandler : IRequestHandler<UpdateServiceCommand, UpdateServiceResult>
+    public class UpdateServiceCommandHandler : IRequestHandler<UpdateServiceCommand, OperationResult<ServiceModel>>
     {
         private readonly IServiceRepository _serviceRepository;
         private readonly IMapper _mapper;
@@ -15,23 +17,22 @@ namespace Application_Layer.Commands.ServiceCommands.UpdateService
             _mapper = mapper;
         }
 
-        public async Task<UpdateServiceResult> Handle(UpdateServiceCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<ServiceModel>> Handle(UpdateServiceCommand request, CancellationToken cancellationToken)
         {
             try
             {
                 var existingService = await _serviceRepository.GetServiceByIdAsync(request.ServiceId);
                 if (existingService == null)
                 {
-                    return UpdateServiceResult.FailureResult("Service not found.");
+                    return OperationResult<ServiceModel>.Failure("Service not found.");
                 }
 
                 _mapper.Map(request.ServiceDto, existingService);
-                await _serviceRepository.UpdateServiceAsync(existingService);
-                return UpdateServiceResult.SuccessResult("Service updated successfully.", existingService);
+                return await _serviceRepository.UpdateServiceAsync(existingService);
             }
             catch (Exception ex)
             {
-                return UpdateServiceResult.FailureResult($"An unexpected error occurred: {ex.Message}");
+                return OperationResult<ServiceModel>.Failure($"An unexpected error occurred: {ex.Message}");
             }
         }
     }

@@ -7,9 +7,6 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
     {
         public RegisterUserCommandValidator()
         {
-            RuleFor(user => user.NewUser.UserName)
-                .MustBeValidUserName();
-
             RuleFor(user => user.NewUser.FirstName)
                 .MustBeValidName();
 
@@ -24,6 +21,10 @@ namespace Application_Layer.Commands.UserCommands.RegisterUser
 
             RuleFor(user => user.NewUser.ConfirmPassword)
                 .Equal(user => user.NewUser.Password).WithMessage("Passwords do not match.");
+
+            RuleFor(user => user.NewUser.PhoneNumber)
+                .NotEmpty().WithMessage("Phone number is required.")
+                .Matches(@"^\+?[0-9\s\-\(\)]{7,15}$").WithMessage("Phone number is not valid.");
         }
     }
 }

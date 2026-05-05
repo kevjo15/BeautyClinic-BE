@@ -15,6 +15,8 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                 .MustBeValidServiceId()
                 .WithMessage("Service ID must be a valid GUID.");
 
+            RuleFor(x => x.Booking.EmployeeId).MustBeValidGuidId();
+
             RuleFor(x => x.Booking.StartTime)
                 .MustBeInFuture()
                 .WithMessage("Start time must be in the future.");

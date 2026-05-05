@@ -1,12 +1,13 @@
 using MediatR;
 using AutoMapper;
+using Domain_Layer.Common;
 using Domain_Layer.Models;
 using Application_Layer.Interfaces;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
 
 namespace Application_Layer.Commands.BookingCommands.CreateBooking
 {
-    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, CreateBookingResult>
+    public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, OperationResult<BookingModel>>
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IMapper _mapper;
@@ -36,7 +37,7 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
             _userRepository = userRepository;
         }
 
-        public async Task<CreateBookingResult> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
+        public async Task<OperationResult<BookingModel>> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -44,7 +45,7 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                 var service = await _serviceRepository.GetServiceByIdAsync(request.Booking.ServiceId);
                 if (service == null)
                 {
-                    return CreateBookingResult.FailureResult("Service not found.");
+                    return OperationResult<BookingModel>.Failure("Service not found.");
                 }
 
                 // 2) Skapa & spara bokning
@@ -78,7 +79,11 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                     booking.ConversationId = conversation.Id;
                 }
 
-                await _bookingRepository.AddAsync(booking);
+                var added = await _bookingRepository.TryAddIfNoConflictAsync(booking);
+                if (!added)
+                {
+                    return OperationResult<BookingModel>.Failure("Den valda tiden är inte längre tillgänglig. Välj en annan tid.");
+                }
 
                 // 3) Spara notifikation i DB
                 var title = "Bokningsbekräftelse";
@@ -102,11 +107,11 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                     booking.Id
                 );
 
-                return CreateBookingResult.SuccessResult("Booking created successfully.", booking);
+                return OperationResult<BookingModel>.Success(booking);
             }
             catch (Exception ex)
             {
-                return CreateBookingResult.FailureResult($"Failed to create booking: {ex.Message}");
+                return OperationResult<BookingModel>.Failure($"Failed to create booking: {ex.Message}");
             }
         }
     }

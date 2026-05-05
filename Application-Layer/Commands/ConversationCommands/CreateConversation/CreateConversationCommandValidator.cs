@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Application.Features.Conversations.Commands
+namespace Application_Layer.Commands.ConversationCommands.CreateConversation
 {
     public class CreateConversationCommandValidator : AbstractValidator<CreateConversationCommand>
     {

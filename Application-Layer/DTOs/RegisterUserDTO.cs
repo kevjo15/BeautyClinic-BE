@@ -5,13 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application_Layer.DTO_s
+namespace Application_Layer.DTOs
 {
     public class RegisterUserDTO
     {
-        [Required]
-        public string UserName { get; set; } = string.Empty;
-
         [Required]
         [EmailAddress]
         [DataType(DataType.EmailAddress)]
@@ -31,5 +28,9 @@ namespace Application_Layer.DTO_s
 
         [Required]
         public string LastName { get; set; } = string.Empty;
+
+        [Required]
+        [Phone]
+        public string PhoneNumber { get; set; } = string.Empty;
     }
 }

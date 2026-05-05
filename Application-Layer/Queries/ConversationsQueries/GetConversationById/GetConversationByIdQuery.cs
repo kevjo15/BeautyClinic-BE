@@ -1,7 +1,7 @@
 using Application_Layer.DTOs;
 using MediatR;
 
-namespace Application.Features.Conversations.Queries
+namespace Application_Layer.Queries.ConversationsQueries.GetConversationById
 {
     public class GetConversationByIdQuery : IRequest<ConversationDTO?>
     {

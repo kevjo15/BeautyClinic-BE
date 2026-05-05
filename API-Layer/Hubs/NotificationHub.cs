@@ -39,17 +39,22 @@ namespace API_Layer.Hubs
             string userId,
             string title,
             string message,
-            NotificationType type)
+            NotificationType type,
+            Guid? conversationId = null,
+            Guid? notificationId = null,
+            Guid? bookingId = null)
         {
             var notification = new NotificationDTO
             {
-                Id = Guid.NewGuid(),
+                Id = notificationId ?? Guid.NewGuid(),
                 Title = title,
                 Message = message,
                 Type = type,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 IsRead = false,
-                UserId = userId
+                UserId = userId,
+                ConversationId = conversationId,
+                BookingId = bookingId
             };
 
             await hubContext.Clients.Group(userId).ReceiveNotification(notification);
@@ -64,7 +69,7 @@ namespace API_Layer.Hubs
                 Title = title,
                 Message = message,
                 Type = type,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 IsRead = false,
                 UserId = userId
             };
