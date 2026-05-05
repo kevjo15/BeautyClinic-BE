@@ -13,6 +13,7 @@ namespace Application_Layer.Interfaces
         Task<List<BookingModel>> GetByEmployeeAndRangeAsync(string employeeId, DateTime from, DateTime to);
         Task AddAsync(BookingModel booking);
         Task<bool> TryAddIfNoConflictAsync(BookingModel booking);
+        Task<bool> HasConflictAsync(Guid excludeBookingId, string employeeId, DateTime start, DateTime end);
         Task UpdateAsync(BookingModel booking);
         Task DeleteAsync(Guid id);
         Task<List<BookingModel>> GetAllAsync();

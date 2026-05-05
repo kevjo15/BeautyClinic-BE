@@ -78,9 +78,15 @@ namespace API_Layer.Controllers
 
         [HttpGet("availability")]
         [AllowAnonymous]
-        public async Task<ActionResult<List<DateTime>>> GetAvailableTimeSlots([FromQuery] Guid serviceId, [FromQuery] DateTime date)
+        public async Task<ActionResult<List<DateTime>>> GetAvailableTimeSlots(
+            [FromQuery] Guid serviceId,
+            [FromQuery] string employeeId,
+            [FromQuery] DateTime date)
         {
-            var query = new GetAvailableTimeSlotsQuery(serviceId, date);
+            if (string.IsNullOrWhiteSpace(employeeId))
+                return BadRequest("employeeId is required.");
+
+            var query = new GetAvailableTimeSlotsQuery(serviceId, employeeId, date);
             var timeSlots = await _mediator.Send(query);
             return Ok(timeSlots);
         }

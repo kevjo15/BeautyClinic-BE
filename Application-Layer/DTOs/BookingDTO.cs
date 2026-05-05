@@ -1,5 +1,12 @@
 namespace Application_Layer.DTOs
 {
+    public class BookingUserDTO
+    {
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Email { get; set; }
+    }
+
     public class BookingDTO
     {
         public Guid Id { get; set; }
@@ -10,13 +17,13 @@ namespace Application_Layer.DTOs
         public string? EmployeeId { get; set; }
         public Guid? ConversationId { get; set; }
 
-        // Customer/User information
+        // Flat strings kept for backward compat
         public string? CustomerName { get; set; }
-
-        // Employee information
         public string? EmployeeName { get; set; }
-
-        // Service information
         public string? ServiceName { get; set; }
+
+        // Nested objects for full access
+        public BookingUserDTO? User { get; set; }
+        public BookingUserDTO? Employee { get; set; }
     }
-} 
+}

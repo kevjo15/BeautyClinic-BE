@@ -19,6 +19,8 @@ namespace Infrastructure_Layer.Database
         public DbSet<MessageModel> Messages { get; set; }
         public DbSet<NotificationModel> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
+        public DbSet<EmployeeScheduleModel> EmployeeSchedules { get; set; }
+        public DbSet<EmployeeWorkDayModel> EmployeeWorkDays { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -120,6 +122,26 @@ namespace Infrastructure_Layer.Database
                 entity.Ignore(rt => rt.IsExpired);
                 entity.Ignore(rt => rt.IsRevoked);
                 entity.Ignore(rt => rt.IsActive);
+            });
+
+            builder.Entity<EmployeeScheduleModel>(entity =>
+            {
+                entity.HasKey(s => s.Id);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(s => s.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(s => s.EmployeeId);
+            });
+
+            builder.Entity<EmployeeWorkDayModel>(entity =>
+            {
+                entity.HasKey(w => w.Id);
+                entity.HasOne<ApplicationUser>()
+                    .WithMany()
+                    .HasForeignKey(w => w.EmployeeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(w => new { w.EmployeeId, w.Date }).IsUnique();
             });
 
             base.OnModelCreating(builder);
