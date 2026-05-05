@@ -36,6 +36,14 @@ namespace Infrastructure_Layer.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<bool> HasConflictAsync(Guid excludeBookingId, string employeeId, DateTime start, DateTime end)
+        {
+            return await _context.Bookings.AnyAsync(b =>
+                b.Id != excludeBookingId &&
+                b.EmployeeId == employeeId &&
+                b.StartTime < end && b.EndTime > start);
+        }
+
         public async Task<bool> TryAddIfNoConflictAsync(BookingModel booking)
         {
             try
@@ -43,6 +51,7 @@ namespace Infrastructure_Layer.Repositories
                 await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
                 var conflict = await _context.Bookings.AnyAsync(b =>
+                    b.EmployeeId == booking.EmployeeId &&
                     b.StartTime < booking.EndTime && b.EndTime > booking.StartTime);
 
                 if (conflict)

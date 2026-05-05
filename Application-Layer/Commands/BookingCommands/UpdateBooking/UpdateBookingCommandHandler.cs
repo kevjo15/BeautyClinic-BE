@@ -47,6 +47,17 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
             }
 
             _mapper.Map(request.Booking, booking);
+
+            if (!string.IsNullOrEmpty(booking.EmployeeId))
+            {
+                var hasConflict = await _bookingRepository.HasConflictAsync(
+                    booking.Id, booking.EmployeeId, booking.StartTime, booking.EndTime);
+                if (hasConflict)
+                    return OperationResult<BookingModel>.Failure(
+                        "Medarbetaren har redan en bokning på den valda tiden.",
+                        OperationFailureType.Conflict);
+            }
+
             await _bookingRepository.UpdateAsync(booking);
 
             var service = await _serviceRepository.GetServiceByIdAsync(booking.ServiceId);

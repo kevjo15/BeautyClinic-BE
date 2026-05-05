@@ -31,6 +31,11 @@ namespace Application_Layer.Commands.BookingCommands.AssignEmployee
                 return OperationResult<BookingDTO>.Failure($"Booking {request.BookingId} not found.");
             }
 
+            var hasConflict = await _bookingRepository.HasConflictAsync(
+                booking.Id, request.EmployeeId, booking.StartTime, booking.EndTime);
+            if (hasConflict)
+                return OperationResult<BookingDTO>.Failure("Medarbetaren har redan en bokning på den valda tiden.");
+
             booking.EmployeeId = request.EmployeeId;
 
             // Create conversation if it does not exist

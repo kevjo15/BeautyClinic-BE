@@ -4,6 +4,7 @@ using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure_Layer.Migrations
 {
     [DbContext(typeof(ElsaBeautyDbContext))]
-    partial class ElsaBeautyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502131409_AddEmployeeSchedule")]
+    partial class AddEmployeeSchedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,33 +121,6 @@ namespace Infrastructure_Layer.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("EmployeeSchedules");
-                });
-
-            modelBuilder.Entity("Domain_Layer.Models.EmployeeWorkDayModel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateOnly>("Date")
-                        .HasColumnType("date");
-
-                    b.Property<string>("EmployeeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmployeeId", "Date")
-                        .IsUnique();
-
-                    b.ToTable("EmployeeWorkDays");
                 });
 
             modelBuilder.Entity("Domain_Layer.Models.MessageModel", b =>
@@ -536,15 +512,6 @@ namespace Infrastructure_Layer.Migrations
                 });
 
             modelBuilder.Entity("Domain_Layer.Models.EmployeeScheduleModel", b =>
-                {
-                    b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain_Layer.Models.EmployeeWorkDayModel", b =>
                 {
                     b.HasOne("Infrastructure_Layer.Identity.ApplicationUser", null)
                         .WithMany()

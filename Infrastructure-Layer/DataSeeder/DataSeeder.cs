@@ -86,6 +86,26 @@ namespace Infrastructure_Layer.DataSeeder
                 }
             }
 
+            if (!_context.EmployeeSchedules.Any())
+            {
+                var employee = await _userManager.FindByEmailAsync(employeeEmail);
+                if (employee != null)
+                {
+                    var weekdays = new[] { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday };
+                    var schedules = weekdays.Select(day => new EmployeeScheduleModel
+                    {
+                        Id = Guid.NewGuid(),
+                        EmployeeId = employee.Id,
+                        DayOfWeek = day,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(17, 0, 0)
+                    }).ToList();
+
+                    _context.EmployeeSchedules.AddRange(schedules);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             if (!_context.Categories.Any())
             {
                 var categories = new List<CategoryModel>

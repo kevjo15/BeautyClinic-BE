@@ -32,7 +32,7 @@ public class UsersController : BaseApiController
         return Ok("This is an Admin-only area.");
     }
 
-    [Authorize(Roles = "Admin,Employee")]
+    [Authorize]
     [HttpGet("employees")]
     public async Task<IActionResult> GetEmployees()
     {
