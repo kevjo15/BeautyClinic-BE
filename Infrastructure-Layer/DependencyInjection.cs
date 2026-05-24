@@ -45,6 +45,8 @@ namespace Infrastructure_Layer
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
+            services.AddMemoryCache();
+
             var storageConnectionString = configuration["Storage:ConnectionString"];
             if (!string.IsNullOrEmpty(storageConnectionString))
             {
