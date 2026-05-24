@@ -307,8 +307,6 @@ BeautyClinic-BE/
     └── UserTests/
 ```
 
-See [`AI_GUIDE.md`](AI_GUIDE.md) for in-depth conventions used by contributors and AI assistants.
-
 ---
 
 ## License
