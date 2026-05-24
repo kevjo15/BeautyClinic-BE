@@ -3,6 +3,7 @@ using Application_Layer.Interfaces;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -13,15 +14,18 @@ public sealed class AzureBlobFileService : IFileService
     private readonly BlobServiceClient _blobServiceClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AzureBlobFileService> _logger;
+    private readonly IMemoryCache _cache;
 
     public AzureBlobFileService(
         BlobServiceClient blobServiceClient,
         IConfiguration configuration,
-        ILogger<AzureBlobFileService> logger)
+        ILogger<AzureBlobFileService> logger,
+        IMemoryCache cache)
     {
         _blobServiceClient = blobServiceClient;
         _configuration = configuration;
         _logger = logger;
+        _cache = cache;
     }
 
     private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
@@ -68,23 +72,32 @@ public sealed class AzureBlobFileService : IFileService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blobPath);
 
+        var cacheKey = $"sas:{blobPath}";
+        if (_cache.TryGetValue(cacheKey, out string? cached) && cached is not null)
+            return Task.FromResult(cached);
+
         try
         {
             var (containerName, blobName) = ParseBlobPath(blobPath);
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = containerClient.GetBlobClient(blobName);
 
+            var lifetimeMinutes = GetSasLifetimeMinutes();
             var builder = new BlobSasBuilder
             {
                 BlobContainerName = containerName,
                 BlobName = blobName,
                 Resource = "b",
-                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(GetSasLifetimeMinutes()),
+                ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(lifetimeMinutes),
                 Protocol = SasProtocol.HttpsAndHttp
             };
 
             builder.SetPermissions(BlobSasPermissions.Read);
-            return Task.FromResult(blobClient.GenerateSasUri(builder).ToString());
+            var sasUrl = blobClient.GenerateSasUri(builder).ToString();
+
+            _cache.Set(cacheKey, sasUrl, TimeSpan.FromMinutes(lifetimeMinutes / 2));
+
+            return Task.FromResult(sasUrl);
         }
         catch (Exception ex)
         {

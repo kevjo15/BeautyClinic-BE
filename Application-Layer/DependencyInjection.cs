@@ -14,6 +14,7 @@ namespace Application_Layer
 
             services.AddValidatorsFromAssembly(assembly);
 
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
             services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());

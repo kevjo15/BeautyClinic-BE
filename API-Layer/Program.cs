@@ -14,8 +14,18 @@ using API_Layer.Notifications;
 using Application_Layer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure_Layer.Notifications;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, config) =>
+{
+    config
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
+});
 
 // Add services to the container.
 
@@ -109,6 +119,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
 // Konfigurera JWT för SignalR
@@ -179,6 +190,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseSerilogRequestLogging();
 
 app.UseErrorHandlingMiddleware();
 
