@@ -208,7 +208,7 @@ dotnet test Test-Layer/Test-Layer.csproj
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/<your-username>/BeautyClinic-BE.git
+git clone https://github.com/Kevjo15/BeautyClinic-BE.git
 cd BeautyClinic-BE
 cp API-Layer/appsettings.example.json API-Layer/appsettings.Development.json
 ```
