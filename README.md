@@ -3,7 +3,7 @@
 A production-grade .NET 8 backend for a beauty clinic management system.
 Built with Clean Architecture, CQRS, and a focus on observability, security, and testability.
 
-The frontend lives in a separate repository ([ElsaBeauty-FE](https://github.com/Kevinjorgensen/ElsaBeauty-FE)) and consumes this API.
+The frontend lives in a separate repository ([ElsaBeauty-FE](https://github.com/Kevjo15/ElsaBeauty-FE)) and consumes this API.
 
 ---
 
