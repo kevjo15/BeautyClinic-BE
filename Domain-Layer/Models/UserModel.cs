@@ -9,5 +9,7 @@ namespace Domain_Layer.Models
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
         public bool IsDeleted { get; set; }
+        public string? AvatarUrl { get; set; }
+        public bool EmailConfirmed { get; set; }
     }
 }

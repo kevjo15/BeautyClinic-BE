@@ -7,4 +7,7 @@ public class ApplicationUser : IdentityUser
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
     public bool IsDeleted { get; set; }
+
+    /// <summary>Blob-path till profilbilden ("&lt;container&gt;/&lt;blobNamn&gt;") — aldrig en färdig URL.</summary>
+    public string? AvatarUrl { get; set; }
 }

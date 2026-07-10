@@ -1,4 +1,4 @@
-using AutoMapper;
+using Application_Layer.Mapping;
 using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
@@ -8,9 +8,9 @@ namespace Application_Layer.Queries.UserQueries.GetUserName
     public class GetUserNameQueryHandler : IRequestHandler<GetUserNameQuery, UserNameDTO?>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
 
-        public GetUserNameQueryHandler(IUserRepository userRepository, IMapper mapper)
+        public GetUserNameQueryHandler(IUserRepository userRepository, IApplicationMapper mapper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -23,7 +23,7 @@ namespace Application_Layer.Queries.UserQueries.GetUserName
             if (user == null)
                 return null;
 
-            return _mapper.Map<UserNameDTO>(user);
+            return _mapper.ToUserNameDto(user);
         }
     }
 }

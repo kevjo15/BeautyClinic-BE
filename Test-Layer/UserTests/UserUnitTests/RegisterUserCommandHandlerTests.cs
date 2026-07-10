@@ -1,10 +1,11 @@
 ﻿using Application_Layer.Commands.UserCommands.RegisterUser;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Test_Layer.UserTests.UserUnitTests
 {
@@ -13,15 +14,21 @@ namespace Test_Layer.UserTests.UserUnitTests
     {
         private RegisterUserCommandHandler _handler;
         private IUserRepository _userRepository;
-        private IMapper _mapper;
+        private IEmailConfirmationEmailService _confirmationEmailService;
+        private IApplicationMapper _mapper;
 
         [SetUp]
         public void Setup()
         {
             _userRepository = A.Fake<IUserRepository>();
-            _mapper = A.Fake<IMapper>();
+            _confirmationEmailService = A.Fake<IEmailConfirmationEmailService>();
+            _mapper = A.Fake<IApplicationMapper>();
 
-            _handler = new RegisterUserCommandHandler(_userRepository, _mapper);
+            _handler = new RegisterUserCommandHandler(
+                _userRepository,
+                _confirmationEmailService,
+                NullLogger<RegisterUserCommandHandler>.Instance,
+                _mapper);
         }
 
         [Test]
@@ -45,7 +52,7 @@ namespace Test_Layer.UserTests.UserUnitTests
                 FirstName = registerUserDTO.FirstName,
                 LastName = registerUserDTO.LastName
             };
-            A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
+            A.CallTo(() => _mapper.ToUserModel(registerUserDTO)).Returns(userModel);
 
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
                 .Returns(Task.FromResult(OperationResult.Success()));
@@ -77,7 +84,7 @@ namespace Test_Layer.UserTests.UserUnitTests
                 Email = registerUserDTO.Email
             };
 
-            A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
+            A.CallTo(() => _mapper.ToUserModel(registerUserDTO)).Returns(userModel);
 
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
                 .Returns(Task.FromResult(OperationResult.Failure("User already exists")));
@@ -92,7 +99,7 @@ namespace Test_Layer.UserTests.UserUnitTests
             // Kontrollera att rätt metoder anropades exakt en gång
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))
                 .MustHaveHappenedOnceExactly();
-            A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO))
+            A.CallTo(() => _mapper.ToUserModel(registerUserDTO))
                 .MustHaveHappenedOnceExactly();
         }
 
@@ -117,7 +124,7 @@ namespace Test_Layer.UserTests.UserUnitTests
                 LastName = registerUserDTO.LastName
             };
 
-            A.CallTo(() => _mapper.Map<UserModel>(registerUserDTO)).Returns(userModel);
+            A.CallTo(() => _mapper.ToUserModel(registerUserDTO)).Returns(userModel);
 
             // Simulera ett oväntat undantag
             A.CallTo(() => _userRepository.RegisterUserAsync(userModel, registerUserDTO.Password))

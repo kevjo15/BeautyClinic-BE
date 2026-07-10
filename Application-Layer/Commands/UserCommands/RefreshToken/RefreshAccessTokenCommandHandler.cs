@@ -3,6 +3,7 @@ using Application_Layer.Jwt;
 using Application_Layer.DTOs;
 using Domain_Layer.Common;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application_Layer.Commands.UserCommands.RefreshToken
 {
@@ -11,15 +12,18 @@ namespace Application_Layer.Commands.UserCommands.RefreshToken
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenService _refreshTokenService;
+        private readonly ILogger<RefreshAccessTokenCommandHandler> _logger;
 
         public RefreshAccessTokenCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
-            IRefreshTokenService refreshTokenService)
+            IRefreshTokenService refreshTokenService,
+            ILogger<RefreshAccessTokenCommandHandler> logger)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenService = refreshTokenService;
+            _logger = logger;
         }
 
         public async Task<OperationResult<AuthTokenPairDTO>> Handle(RefreshAccessTokenCommand request, CancellationToken cancellationToken)
@@ -63,7 +67,9 @@ namespace Application_Layer.Commands.UserCommands.RefreshToken
             }
             catch (Exception ex)
             {
-                return OperationResult<AuthTokenPairDTO>.Failure($"An unexpected error occurred: {ex.Message}");
+                // Logga internt; exponera aldrig råa exception-detaljer till klienten.
+                _logger.LogError(ex, "Unhandled exception while refreshing access token");
+                return OperationResult<AuthTokenPairDTO>.Failure("An unexpected error occurred.");
             }
         }
     }

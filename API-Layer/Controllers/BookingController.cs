@@ -8,8 +8,11 @@ using Application_Layer.Commands.BookingCommands.AssignEmployee;
 using Application_Layer.Queries.BookingQueries.GetBookingById;
 using Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots;
 using Application_Layer.Queries.BookingQueries.GetAllBookings;
+using Application_Layer.Queries.BookingQueries.GetBookingsReport;
 using Application_Layer.Queries.BookingQueries.GetEmployeeBookings;
+using Application_Layer.Common;
 using Application_Layer.DTOs;
+using System.Text;
 
 namespace API_Layer.Controllers
 {
@@ -23,6 +26,32 @@ namespace API_Layer.Controllers
         public BookingController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet("report")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<BookingsReportDTO>> GetReport(
+            [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken ct)
+        {
+            var report = await _mediator.Send(new GetBookingsReportQuery(from, to), ct);
+            return Ok(report);
+        }
+
+        [HttpGet("report/csv")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetReportCsv(
+            [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken ct)
+        {
+            var report = await _mediator.Send(new GetBookingsReportQuery(from, to), ct);
+            var csv = BookingsReportCsvBuilder.Build(report);
+
+            // UTF-8 BOM så svensk Excel läser åäö korrekt
+            var bytes = Encoding.UTF8.GetPreamble()
+                .Concat(Encoding.UTF8.GetBytes(csv))
+                .ToArray();
+
+            var fileName = $"bokningar_{report.From:yyyy-MM-dd}_{report.To:yyyy-MM-dd}.csv";
+            return File(bytes, "text/csv; charset=utf-8", fileName);
         }
 
         [HttpPost]

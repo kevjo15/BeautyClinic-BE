@@ -1,3 +1,4 @@
+using Domain_Layer.Common;
 using FluentValidation;
 
 namespace Application_Layer.Validators.ValidationExtensions
@@ -13,8 +14,9 @@ namespace Application_Layer.Validators.ValidationExtensions
 
         public static IRuleBuilderOptions<T, DateTime> MustBeInFuture<T>(this IRuleBuilder<T, DateTime> ruleBuilder)
         {
+            // Booking times are Swedish wall-clock time; the server clock is UTC on Azure.
             return ruleBuilder
-                .Must(dateTime => dateTime > DateTime.Now)
+                .Must(dateTime => dateTime > SwedishTime.Now)
                 .WithMessage("The date and time must be in the future.");
         }
 

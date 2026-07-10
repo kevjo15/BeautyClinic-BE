@@ -3,6 +3,7 @@ using Application_Layer.Jwt;
 using Application_Layer.DTOs;
 using Domain_Layer.Common;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Application_Layer.Commands.UserCommands.Login
 {
@@ -11,15 +12,18 @@ namespace Application_Layer.Commands.UserCommands.Login
         private readonly IUserRepository _userRepository;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IRefreshTokenService _refreshTokenService;
+        private readonly ILogger<LoginCommandHandler> _logger;
 
         public LoginCommandHandler(
             IUserRepository userRepository,
             IJwtTokenGenerator jwtTokenGenerator,
-            IRefreshTokenService refreshTokenService)
+            IRefreshTokenService refreshTokenService,
+            ILogger<LoginCommandHandler> logger)
         {
             _userRepository = userRepository;
             _jwtTokenGenerator = jwtTokenGenerator;
             _refreshTokenService = refreshTokenService;
+            _logger = logger;
         }
 
         public async Task<OperationResult<AuthTokenPairDTO>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -32,6 +36,18 @@ namespace Application_Layer.Commands.UserCommands.Login
                 if (existingUser == null || !passwordValid)
                 {
                     return OperationResult<AuthTokenPairDTO>.Failure("Felaktigt email eller lösenord.");
+                }
+
+                // Kollas först EFTER lyckad lösenordskontroll — läcker inget till utomstående.
+                if (existingUser.IsDeleted)
+                {
+                    return OperationResult<AuthTokenPairDTO>.Failure("Kontot är borttaget.");
+                }
+
+                if (!existingUser.EmailConfirmed)
+                {
+                    return OperationResult<AuthTokenPairDTO>.Failure(
+                        "Din e-postadress är inte bekräftad. Klicka på länken i bekräftelsemejlet vi skickade när du registrerade dig.");
                 }
 
                 // Generate refresh token using the new service (hashed and stored in DB)
@@ -49,7 +65,9 @@ namespace Application_Layer.Commands.UserCommands.Login
             }
             catch (Exception ex)
             {
-                return OperationResult<AuthTokenPairDTO>.Failure($"An unexpected error occurred: {ex.Message}");
+                // Logga internt; exponera aldrig råa exception-detaljer till klienten.
+                _logger.LogError(ex, "Unhandled exception during login");
+                return OperationResult<AuthTokenPairDTO>.Failure("An unexpected error occurred.");
             }
         }
     }

@@ -1,14 +1,14 @@
 using MediatR;
 using Application_Layer.Interfaces;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Application_Layer.DTOs;
 
 public class GetBookingsByUserIdQueryHandler : IRequestHandler<GetBookingsByUserIdQuery, List<BookingDTO>>
 {
     private readonly IBookingRepository _bookingRepository;
-    private readonly IMapper _mapper;
+    private readonly IApplicationMapper _mapper;
 
-    public GetBookingsByUserIdQueryHandler(IBookingRepository bookingRepository, IMapper mapper)
+    public GetBookingsByUserIdQueryHandler(IBookingRepository bookingRepository, IApplicationMapper mapper)
     {
         _bookingRepository = bookingRepository;
         _mapper = mapper;
@@ -17,6 +17,6 @@ public class GetBookingsByUserIdQueryHandler : IRequestHandler<GetBookingsByUser
     public async Task<List<BookingDTO>> Handle(GetBookingsByUserIdQuery request, CancellationToken cancellationToken)
     {
         var bookings = await _bookingRepository.GetByUserIdAsync(request.UserId);
-        return _mapper.Map<List<BookingDTO>>(bookings);
+        return _mapper.ToBookingDtoList(bookings);
     }
 }

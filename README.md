@@ -259,9 +259,9 @@ All endpoints are documented via Swagger when running locally. High-level groupi
 | Group | Routes |
 |-------|--------|
 | Auth | `/api/auth/{register,login,refresh,logout}` |
-| Current user | `/api/me`, `/api/me/name` |
+| Current user | `/api/me` (full profile), `/api/me/profile`, `/api/me/password` |
 | Users (admin) | `/api/users/employees` |
-| Services | `/api/services`, `/api/services/with-sas`, `/api/services/{id}/image` |
+| Services | `/api/services` (image URLs SAS-signed on read), `/api/services/{id}/image` |
 | Categories | `/api/categories`, `/api/categories/with-services` |
 | Bookings | `/api/bookings`, `/api/bookings/availability`, `/api/bookings/me`, `/api/bookings/assigned` |
 | Schedules | `/api/schedules/{employeeId}` |

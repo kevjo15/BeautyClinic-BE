@@ -18,6 +18,19 @@ namespace Infrastructure_Layer.DataSeeder
             _context = context;
         }
 
+        // ImageUrl lagras som "<container>/<blobNamn>" — aldrig som färdig URL.
+        // SAS-läslänkar genereras vid varje läsning (se ServiceImageUrlResolver).
+        private static readonly Dictionary<Guid, string> ServiceImageBlobPaths = new()
+        {
+            [Guid.Parse("78BD2011-7143-4344-A909-03D533B1E99E")] = "images/services/c51afadc-460c-4901-8292-1f98c58cb355.png",
+            [Guid.Parse("9C3A162A-C74C-42E1-A8F7-42E2A7379720")] = "images/services/91581ea5-8ce9-4f00-8dc1-20f88eac78ae.png",
+            [Guid.Parse("8FFA1DB5-0965-4EC2-8C89-4459C9ACFDB1")] = "images/services/5565f6e4-51d3-4a78-9954-88d60bfaa585.png",
+            [Guid.Parse("067FD02F-7BCE-4ECD-8C18-C0E8045FDD42")] = "images/services/2524f7e4-cceb-41cd-88bc-0a3d2c222d29.png",
+            [Guid.Parse("BE9909FB-D2BF-4A90-B5A8-D8259489ED5F")] = "images/services/e6e0f306-3093-477b-9e0b-21be10b6c5b8.png",
+            [Guid.Parse("E606735E-4248-4898-9FF5-DE847C9FA8CB")] = "images/services/c39355a4-2709-4484-b2fe-1857cd6543ab.png",
+            [Guid.Parse("D08C2D95-9199-4C97-94DF-F38B144241EB")] = "images/services/4d405cc9-319a-43a4-a4c4-d4f52ff6a8f3.png",
+        };
+
         public async Task SeedAsync()
         {
             var roles = new[] { "Admin", "Customer", "Employee" };
@@ -38,7 +51,8 @@ namespace Infrastructure_Layer.DataSeeder
                     Email = adminEmail,
                     FirstName = "Elsa",
                     LastName = "Admin",
-                    PhoneNumber = "0701234567"
+                    PhoneNumber = "0701234567",
+                    EmailConfirmed = true
                 };
                 var result = await _userManager.CreateAsync(adminUser, "Password123!");
 
@@ -57,7 +71,8 @@ namespace Infrastructure_Layer.DataSeeder
                     Email = employeeEmail,
                     FirstName = "Emma",
                     LastName = "Andersson",
-                    PhoneNumber = "0709876543"
+                    PhoneNumber = "0709876543",
+                    EmailConfirmed = true
                 };
                 var result = await _userManager.CreateAsync(employeeUser, "Password123!");
 
@@ -76,7 +91,8 @@ namespace Infrastructure_Layer.DataSeeder
                     Email = customerEmail,
                     FirstName = "Karin",
                     LastName = "Karlsson",
-                    PhoneNumber = "0705555555"
+                    PhoneNumber = "0705555555",
+                    EmailConfirmed = true
                 };
                 var result = await _userManager.CreateAsync(customerUser, "Password123!");
 
@@ -128,7 +144,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att ge volym och form till läpparna med 1 ml fillers.",
                         Duration = TimeSpan.FromMinutes(30),
                         Price = 2500.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/c51afadc-460c-4901-8292-1f98c58cb355.png",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -138,7 +153,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En lätt volymökning med 0.5 ml fillers för en naturlig look.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 1500.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/91581ea5-8ce9-4f00-8dc1-20f88eac78ae.png",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -148,7 +162,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att reducera linjer och rynkor i pannan.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 2000.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/services/5565f6e4-51d3-4a78-9954-88d60bfaa585.png",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     },
                     new ServiceModel
@@ -158,7 +171,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "En behandling för att lösa upp oönskade fillers.",
                         Duration = TimeSpan.FromMinutes(20),
                         Price = 2000.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/hyalase.jpg",
                         CategoryId = categories.First(c => c.Name == "Fillers").Id
                     },
                     new ServiceModel
@@ -168,7 +180,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Botox i käkmuskulaturen för att lindra tandgnissling.",
                         Duration = TimeSpan.FromMinutes(30),
                         Price = 2500.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/botox-kaklinje.jpg",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     },
                     new ServiceModel
@@ -178,7 +189,6 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Behandling som förbättrar hudens struktur genom små nålstick.",
                         Duration = TimeSpan.FromMinutes(60),
                         Price = 1800.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/microneedling.jpg",
                         CategoryId = categories.First(c => c.Name == "Microneedling").Id
                     },
                     new ServiceModel
@@ -188,12 +198,48 @@ namespace Infrastructure_Layer.DataSeeder
                         Description = "Behandling för att minska rynkor runt ögonen med botox.",
                         Duration = TimeSpan.FromMinutes(15),
                         Price = 1800.00m,
-                        ImageUrl = "http://127.0.0.1:10000/devstoreaccount1/service-images/botox-kraksparkar.jpg",
                         CategoryId = categories.First(c => c.Name == "Botox").Id
                     }
                 };
 
+                foreach (var service in services)
+                {
+                    if (ServiceImageBlobPaths.TryGetValue(service.Id, out var blobPath))
+                    {
+                        service.ImageUrl = blobPath;
+                    }
+                }
+
                 _context.Services.AddRange(services);
+                await _context.SaveChangesAsync();
+            }
+
+            await NormalizeLegacyImageUrlsAsync();
+        }
+
+        /// <summary>
+        /// Äldre databaser kan ha fulla URL:er lagrade i ImageUrl (t.ex. Azurite-adresser
+        /// från en tidigare seeder). Skriv om kända rader till blob-paths så att
+        /// SAS-generering vid läsning fungerar. Idempotent — no-op när inget matchar.
+        /// </summary>
+        private async Task NormalizeLegacyImageUrlsAsync()
+        {
+            var legacyServices = _context.Services
+                .Where(s => s.ImageUrl.StartsWith("http"))
+                .ToList();
+
+            var changed = false;
+            foreach (var service in legacyServices)
+            {
+                if (ServiceImageBlobPaths.TryGetValue(service.Id, out var blobPath))
+                {
+                    service.ImageUrl = blobPath;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
                 await _context.SaveChangesAsync();
             }
         }
