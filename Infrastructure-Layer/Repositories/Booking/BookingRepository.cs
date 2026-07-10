@@ -20,7 +20,7 @@ namespace Infrastructure_Layer.Repositories
         {
             var booking = await _context.Bookings
                 .Include(b => b.Service)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id && b.Status == BookingStatus.Active);
 
             if (booking != null)
             {
@@ -40,6 +40,7 @@ namespace Infrastructure_Layer.Repositories
         {
             return await _context.Bookings.AnyAsync(b =>
                 b.Id != excludeBookingId &&
+                b.Status == BookingStatus.Active &&
                 b.EmployeeId == employeeId &&
                 b.StartTime < end && b.EndTime > start);
         }
@@ -51,6 +52,7 @@ namespace Infrastructure_Layer.Repositories
                 await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
 
                 var conflict = await _context.Bookings.AnyAsync(b =>
+                    b.Status == BookingStatus.Active &&
                     b.EmployeeId == booking.EmployeeId &&
                     b.StartTime < booking.EndTime && b.EndTime > booking.StartTime);
 
@@ -78,40 +80,45 @@ namespace Infrastructure_Layer.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking == null)
-            {
-                return;
-            }
-
-            _context.Bookings.Remove(booking);
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<List<BookingModel>> GetByUserIdAsync(string userId)
         {
             var bookings = await _context.Bookings
                 .Include(b => b.Service)
-                .Where(b => b.UserId == userId)
+                .Where(b => b.UserId == userId && b.Status == BookingStatus.Active)
                 .ToListAsync();
 
             await PopulateUsersAsync(bookings);
             return bookings;
         }
 
-        public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end)
+        public async Task<List<BookingModel>> GetByDateRangeAsync(DateTime start, DateTime end, bool includeCancelled = false)
         {
-            var bookings = await _context.Bookings
+            var query = _context.Bookings
                 .Include(b => b.Service)
                 .Where(b => (b.StartTime >= start && b.StartTime < end) ||
                            (b.EndTime > start && b.EndTime <= end) ||
-                           (b.StartTime <= start && b.EndTime >= end))
-                .ToListAsync();
+                           (b.StartTime <= start && b.EndTime >= end));
+
+            if (!includeCancelled)
+            {
+                query = query.Where(b => b.Status == BookingStatus.Active);
+            }
+
+            var bookings = await query.ToListAsync();
 
             await PopulateUsersAsync(bookings);
             return bookings;
+        }
+
+        public async Task<List<BookingModel>> GetDueForReminderAsync(DateTime windowStart, DateTime windowEnd)
+        {
+            return await _context.Bookings
+                .Include(b => b.Service)
+                .Where(b => b.Status == BookingStatus.Active &&
+                            b.ReminderSentAt == null &&
+                            b.StartTime > windowStart &&
+                            b.StartTime <= windowEnd)
+                .ToListAsync();
         }
 
         public async Task<List<BookingModel>> GetByEmployeeAndRangeAsync(string employeeId, DateTime from, DateTime to)
@@ -119,6 +126,7 @@ namespace Infrastructure_Layer.Repositories
             var bookings = await _context.Bookings
                 .Include(b => b.Service)
                 .Where(b => b.EmployeeId == employeeId &&
+                    b.Status == BookingStatus.Active &&
                     ((b.StartTime >= from && b.StartTime < to) ||
                      (b.EndTime > from && b.EndTime <= to) ||
                      (b.StartTime <= from && b.EndTime >= to)))
@@ -132,6 +140,7 @@ namespace Infrastructure_Layer.Repositories
         {
             var bookings = await _context.Bookings
                 .Include(b => b.Service)
+                .Where(b => b.Status == BookingStatus.Active)
                 .ToListAsync();
 
             await PopulateUsersAsync(bookings);

@@ -1,5 +1,5 @@
 using MediatR;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Application_Layer.Interfaces;
 using Application_Layer.Commands.NotificationCommands.CreateNotification;
 using Domain_Layer.Common;
@@ -10,12 +10,12 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
     public class UpdateBookingCommandHandler : IRequestHandler<UpdateBookingCommand, OperationResult<BookingModel>>
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
         private readonly IServiceRepository _serviceRepository;
         private readonly IMediator _mediator;
         private readonly INotificationService _notificationService;
 
-        public UpdateBookingCommandHandler(IBookingRepository bookingRepository, IMapper mapper, IServiceRepository serviceRepository, IMediator mediator, INotificationService notificationService)
+        public UpdateBookingCommandHandler(IBookingRepository bookingRepository, IApplicationMapper mapper, IServiceRepository serviceRepository, IMediator mediator, INotificationService notificationService)
         {
             _bookingRepository = bookingRepository;
             _mapper = mapper;
@@ -46,7 +46,7 @@ namespace Application_Layer.Commands.BookingCommands.UpdateBooking
                     OperationFailureType.Forbidden);
             }
 
-            _mapper.Map(request.Booking, booking);
+            _mapper.UpdateBookingModel(request.Booking, booking);
 
             if (!string.IsNullOrEmpty(booking.EmployeeId))
             {

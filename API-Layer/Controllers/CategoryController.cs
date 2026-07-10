@@ -49,7 +49,7 @@ namespace API_Layer.Controllers
 
         // POST: api/categories/create
         [HttpPost]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateDTO categoryCreateDto)
         {
             var command = new CreateCategoryCommand(categoryCreateDto.CategoryName);
@@ -59,7 +59,7 @@ namespace API_Layer.Controllers
 
         // PUT: api/categories/update/{id}
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] CategoryDTO categoryDto)
         {
             var command = new UpdateCategoryCommand(id, categoryDto);
@@ -69,7 +69,7 @@ namespace API_Layer.Controllers
 
         // DELETE: api/categories/delete/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
             var command = new DeleteCategoryCommand(id);
@@ -79,7 +79,7 @@ namespace API_Layer.Controllers
 
         // POST: api/categories/{categoryId}/add-service
         [HttpPost("{categoryId}/services/{serviceId}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddServiceToCategory(Guid categoryId, Guid serviceId)
         {
             var command = new AddServiceToCategoryCommand(categoryId, serviceId);
@@ -89,7 +89,7 @@ namespace API_Layer.Controllers
 
         // DELETE: api/categories/{categoryId}/remove-service/{serviceId}
         [HttpDelete("{categoryId}/services/{serviceId}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveServiceFromCategory(Guid categoryId, Guid serviceId)
         {
             var command = new RemoveServiceFromCategoryCommand(categoryId, serviceId);

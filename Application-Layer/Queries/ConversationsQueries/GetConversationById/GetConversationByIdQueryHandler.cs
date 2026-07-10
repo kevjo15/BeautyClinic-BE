@@ -1,7 +1,7 @@
 using Application_Layer.Queries.ConversationsQueries.GetConversationById;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using AutoMapper;
+using Application_Layer.Mapping;
 using MediatR;
 
 namespace Application_Layer.Queries.ConversationsQueries.GetConversationById
@@ -9,9 +9,9 @@ namespace Application_Layer.Queries.ConversationsQueries.GetConversationById
     public class GetConversationByIdQueryHandler : IRequestHandler<GetConversationByIdQuery, ConversationDTO?>
     {
         private readonly IConversationRepository _conversationRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
 
-        public GetConversationByIdQueryHandler(IConversationRepository conversationRepository, IMapper mapper)
+        public GetConversationByIdQueryHandler(IConversationRepository conversationRepository, IApplicationMapper mapper)
         {
             _conversationRepository = conversationRepository;
             _mapper = mapper;
@@ -24,7 +24,7 @@ namespace Application_Layer.Queries.ConversationsQueries.GetConversationById
             if (conversation == null)
                 return null;
 
-            return _mapper.Map<ConversationDTO>(conversation);
+            return _mapper.ToConversationDto(conversation);
         }
     }
 }

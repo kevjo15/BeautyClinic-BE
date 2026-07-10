@@ -55,11 +55,35 @@ namespace Infrastructure_Layer.Repositories.Service
             var service = await _context.Services.FindAsync(id);
             if (service == null)
             {
-                return OperationResult.Failure("Service not found.");
+                return OperationResult.Failure("Service not found.", OperationFailureType.NotFound);
+            }
+
+            // Bokningar (även avbokade/historiska) refererar behandlingen.
+            // Explicit kontroll — databasen saknade historiskt FK:n på ServiceId,
+            // så vi kan inte förlita oss enbart på constraint-felet nedan.
+            var hasBookings = await _context.Bookings.AnyAsync(b => b.ServiceId == id);
+            if (hasBookings)
+            {
+                return OperationResult.Failure(
+                    "Behandlingen kan inte tas bort eftersom den har bokningar.",
+                    OperationFailureType.Conflict);
             }
 
             _context.Services.Remove(service);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Skyddsnät om en bokning skapas mellan kontrollen och raderingen
+                // (FK:n återinförs av migrationen AddBookingServiceForeignKey).
+                _context.Entry(service).State = EntityState.Unchanged;
+                return OperationResult.Failure(
+                    "Behandlingen kan inte tas bort eftersom den har bokningar.",
+                    OperationFailureType.Conflict);
+            }
+
             return OperationResult.Success();
         }
 
