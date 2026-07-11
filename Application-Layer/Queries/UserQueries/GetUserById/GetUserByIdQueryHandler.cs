@@ -1,6 +1,6 @@
 ﻿using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using AutoMapper;
+using Application_Layer.Mapping;
 using MediatR;
 
 namespace Application_Layer.Queries.UserQueries.GetUserById
@@ -8,9 +8,9 @@ namespace Application_Layer.Queries.UserQueries.GetUserById
     public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, GetUserByIdResponseDTO>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
 
-        public GetUserByIdQueryHandler(IUserRepository userRepository, IMapper mapper)
+        public GetUserByIdQueryHandler(IUserRepository userRepository, IApplicationMapper mapper)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -24,7 +24,7 @@ namespace Application_Layer.Queries.UserQueries.GetUserById
                 throw new KeyNotFoundException($"User with ID {request.UserId} not found.");
             }
 
-            return _mapper.Map<GetUserByIdResponseDTO>(user);
+            return _mapper.ToUserByIdResponseDto(user);
         }
     }
 }

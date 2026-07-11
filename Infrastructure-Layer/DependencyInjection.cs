@@ -43,6 +43,7 @@ namespace Infrastructure_Layer
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+            services.AddScoped<IGoogleIdTokenValidator, GoogleIdTokenValidator>();
             services.AddScoped<DataSeeder.DataSeeder>();
 
             services.AddMemoryCache();
@@ -57,6 +58,9 @@ namespace Infrastructure_Layer
             {
                 services.AddScoped<IFileService, NullFileService>();
             }
+
+            services.AddScoped<IPasswordResetEmailService, Notifications.PasswordResetEmailService>();
+            services.AddScoped<IEmailConfirmationEmailService, Notifications.EmailConfirmationEmailService>();
 
             var communicationServicesConnection = configuration["CommunicationServices:ConnectionString"];
             if (!string.IsNullOrWhiteSpace(communicationServicesConnection))

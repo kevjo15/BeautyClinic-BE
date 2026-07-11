@@ -1,0 +1,17 @@
+<Project>
+  <!--
+    .NET 10-kompatibilitetsshim.
+
+    .NET 10-SDK:n introducerade "package pruning", som kräver metadata om vad
+    som ingår i det delade ramverket (Microsoft.AspNetCore.App). Vissa
+    Linux-distributioners SDK-paket (t.ex. Arch dotnet-sdk) levererar inte den
+    metadatan, vilket ger byggfelet NETSDK1226 lokalt.
+
+    AllowMissingPrunePackageData=true låter bygget fortsätta utan pruning när
+    datan saknas. Officiella SDK:er (GitHub Actions setup-dotnet, Azure App
+    Service) har metadatan, så där blir detta en no-op — pruning sker som vanligt.
+  -->
+  <PropertyGroup>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+  </PropertyGroup>
+</Project>

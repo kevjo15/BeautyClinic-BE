@@ -1,5 +1,5 @@
 using MediatR;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Domain_Layer.Common;
 using Domain_Layer.Models;
 using Application_Layer.Interfaces;
@@ -10,7 +10,7 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
     public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand, OperationResult<BookingModel>>
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
         private readonly IServiceRepository _serviceRepository;
         private readonly IMediator _mediator;
 
@@ -20,7 +20,7 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
 
         public CreateBookingCommandHandler(
             IBookingRepository bookingRepository,
-            IMapper mapper,
+            IApplicationMapper mapper,
             IServiceRepository serviceRepository,
             IMediator mediator,
             INotificationService notificationService,
@@ -49,7 +49,7 @@ namespace Application_Layer.Commands.BookingCommands.CreateBooking
                 }
 
                 // 2) Skapa & spara bokning
-                var booking = _mapper.Map<BookingModel>(request.Booking);
+                var booking = _mapper.ToBookingModel(request.Booking);
                 booking.Id = Guid.NewGuid();
                 // Assign employee only if provided; chat activates first when employee exists
                 var employeeId = request.Booking.EmployeeId;

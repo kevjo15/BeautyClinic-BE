@@ -1,7 +1,7 @@
 using MediatR;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Domain_Layer.Common;
 
 namespace Application_Layer.Queries.BookingQueries.GetBookingById
@@ -9,9 +9,9 @@ namespace Application_Layer.Queries.BookingQueries.GetBookingById
     public class GetBookingByIdQueryHandler : IRequestHandler<GetBookingByIdQuery, OperationResult<BookingDTO>>
     {
         private readonly IBookingRepository _bookingRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
 
-        public GetBookingByIdQueryHandler(IBookingRepository bookingRepository, IMapper mapper)
+        public GetBookingByIdQueryHandler(IBookingRepository bookingRepository, IApplicationMapper mapper)
         {
             _bookingRepository = bookingRepository;
             _mapper = mapper;
@@ -35,7 +35,7 @@ namespace Application_Layer.Queries.BookingQueries.GetBookingById
                     OperationFailureType.Forbidden);
             }
 
-            return OperationResult<BookingDTO>.Success(_mapper.Map<BookingDTO>(booking));
+            return OperationResult<BookingDTO>.Success(_mapper.ToBookingDto(booking));
         }
     }
 }

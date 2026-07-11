@@ -11,6 +11,7 @@ using System.Security.Claims;
 using API_Layer.Hubs;
 using API_Layer.Middleware;
 using API_Layer.Notifications;
+using API_Layer.Workers;
 using Application_Layer.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure_Layer.Notifications;
@@ -27,21 +28,15 @@ builder.Host.UseSerilog((context, services, config) =>
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}");
 });
 
-// Add services to the container.
-
-// L�gg till tj�nster fr�n Application_Layer
+// Application- och Infrastructure-lagrens tjänster
 builder.Services.AddApplicationLayer();
-
-// L�gg till tj�nster fr�n Infrastructure_Layer
 builder.Services.AddInfrastructureLayer(builder.Configuration);
 
-// L�s in JWT-inst�llningar fr�n appsettings.json
+// JWT-inställningar från konfigurationen
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var jwtSecret = jwtSettings["Secret"] ?? throw new InvalidOperationException("JwtSettings:Secret is missing.");
 var key = Encoding.ASCII.GetBytes(jwtSecret);
 
-
-// Konfigurera JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -52,7 +47,6 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        //RoleClaimType = ClaimTypes.Role,
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
@@ -60,7 +54,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ClockSkew = TimeSpan.Zero  // Om du vill ta bort tidsavvikelser vid validering
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -77,42 +71,46 @@ var tokenValidationParameters = new TokenValidationParameters
 };
 builder.Services.AddSingleton(tokenValidationParameters);
 
-// L�gg till auktorisering med en AdminPolicy
 builder.Services.AddAuthorization();
 
-// Konfigurera Identity
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ElsaBeautyDbContext>()
     .AddDefaultTokenProviders();
 
-
 builder.Services.AddRateLimiting();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
-// Add SignalR services
 builder.Services.AddSignalR().AddJsonProtocol(options =>
 {
     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
 });
 
-// Add CORS policy for SignalR
+// Tillåtna origins kommer från konfigurationen (Cors:AllowedOrigins) så att
+// produktion inte behöver kodändringar när frontend-adressen ändras.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[]
+    {
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://zealous-moss-037161903.2.azurestaticapps.net"
+    };
+
 builder.Services.AddCors(options =>
 {
+    // Samma origin-lista för API-anrop och SignalR-hubbar — aldrig öppen för alla.
     options.AddPolicy("SignalRPolicy", policy =>
     {
-        policy.AllowAnyHeader()
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowed(_ => true); // Tillåt alla origins under utveckling
+              .AllowCredentials();
     });
-    // CORS-policy för vanliga API-anrop från frontend
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:10000", "https://zealous-moss-037161903.2.azurestaticapps.net") // Lägg till Azurite-origin
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -122,7 +120,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
-// Konfigurera JWT för SignalR
+// Bakgrundsjobb: bokningspåminnelser (se Reminders-sektionen i konfigurationen)
+builder.Services.AddHostedService<BookingReminderWorker>();
+
+// SignalR skickar JWT som query-parameter vid websocket-anslutning
 builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.Events = new JwtBearerEvents
@@ -144,9 +145,13 @@ builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSch
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "ElsaBeauty API",
+        Version = "v1",
+        Description = "Boknings-API för ElsaBeauty — tjänster, bokningar, chatt och notifikationer."
+    });
 
-    // Adding the JWT authentication definition to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
