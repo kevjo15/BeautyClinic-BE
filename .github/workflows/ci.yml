@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [Development, main]
+  pull_request:
+    branches: [Development, main]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore ElsaBeauty-BE.sln
+
+      - name: Build
+        run: dotnet build ElsaBeauty-BE.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Test-Layer/Test-Layer.csproj --configuration Release --no-build --verbosity normal

@@ -1,6 +1,6 @@
 using Application_Layer.Interfaces;
 using Application_Layer.DTOs;
-using AutoMapper;
+using Application_Layer.Mapping;
 using Domain_Layer.Common;
 using Domain_Layer.Models;
 using MediatR;
@@ -11,12 +11,12 @@ namespace Application_Layer.Commands.BookingCommands.AssignEmployee
     {
         private readonly IBookingRepository _bookingRepository;
         private readonly IConversationRepository _conversationRepository;
-        private readonly IMapper _mapper;
+        private readonly IApplicationMapper _mapper;
 
         public AssignEmployeeCommandHandler(
             IBookingRepository bookingRepository,
             IConversationRepository conversationRepository,
-            IMapper mapper)
+            IApplicationMapper mapper)
         {
             _bookingRepository = bookingRepository;
             _conversationRepository = conversationRepository;
@@ -63,7 +63,7 @@ namespace Application_Layer.Commands.BookingCommands.AssignEmployee
             }
 
             await _bookingRepository.UpdateAsync(booking);
-            return OperationResult<BookingDTO>.Success(_mapper.Map<BookingDTO>(booking));
+            return OperationResult<BookingDTO>.Success(_mapper.ToBookingDto(booking));
         }
     }
 }

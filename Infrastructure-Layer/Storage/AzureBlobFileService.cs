@@ -68,6 +68,59 @@ public sealed class AzureBlobFileService : IFileService
         }
     }
 
+    public async Task<(string blobPath, string sasUrl)> UploadUserAvatarAsync(string userId, FileUploadRequest file, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userId);
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(ext) || !AllowedContentTypes.Contains(file.ContentType.ToLowerInvariant()))
+        {
+            _logger.LogWarning("Rejected avatar upload for unsupported file type: {FileName} ({ContentType})", file.FileName, file.ContentType);
+            throw new InvalidOperationException("Only image files (jpg, png, webp) are allowed.");
+        }
+
+        var container = GetContainerName();
+        var containerClient = _blobServiceClient.GetBlobContainerClient(container);
+        await containerClient.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: ct);
+
+        // Ett blob-namn per användare (utan filändelse) — ny uppladdning ersätter den gamla.
+        var blobName = $"avatars/{userId}";
+        var blobClient = containerClient.GetBlobClient(blobName);
+
+        try
+        {
+            await using var stream = new MemoryStream(file.Content, writable: false);
+            await blobClient.UploadAsync(stream, overwrite: true, cancellationToken: ct);
+            await blobClient.SetHttpHeadersAsync(
+                new BlobHttpHeaders { ContentType = file.ContentType },
+                cancellationToken: ct);
+
+            var blobPath = $"{container}/{blobName}";
+
+            // Kasta cachad SAS så nästa läsning får en ny URL (annars visar webbläsaren gammal bild).
+            _cache.Remove($"sas:{blobPath}");
+            var sasUrl = await GenerateServiceImageReadUrlAsync(blobPath, ct);
+
+            _logger.LogInformation("Uploaded avatar to {BlobPath} ({SizeBytes} bytes)", blobPath, file.Content.Length);
+            return (blobPath, sasUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to upload avatar for user {UserId}", userId);
+            throw;
+        }
+    }
+
+    public async Task DeleteAsync(string blobPath, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(blobPath);
+
+        var (containerName, blobName) = ParseBlobPath(blobPath);
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        await containerClient.GetBlobClient(blobName).DeleteIfExistsAsync(cancellationToken: ct);
+        _cache.Remove($"sas:{blobPath}");
+    }
+
     public Task<string> GenerateServiceImageReadUrlAsync(string blobPath, CancellationToken ct)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blobPath);

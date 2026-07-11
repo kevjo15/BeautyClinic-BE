@@ -1,27 +1,31 @@
+using Application_Layer.Common;
 using Application_Layer.DTOs;
 using Application_Layer.Interfaces;
-using Application_Layer.Queries.ServiceQueries.GetAllServicesWithSas;
-using AutoMapper;
+using Application_Layer.Queries.ServiceQueries.GetAllServices;
+using Application_Layer.Mapping;
 using Domain_Layer.Models;
 using FakeItEasy;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Test_Layer.ServiceTests.ServiceUnitTests;
 
 [TestFixture]
-public class GetAllServicesWithSasHandlerTests
+public class GetAllServicesQueryHandlerTests
 {
     private IServiceRepository _serviceRepository = null!;
     private IFileService _fileService = null!;
-    private IMapper _mapper = null!;
-    private GetAllServicesWithSasHandler _handler = null!;
+    private IApplicationMapper _mapper = null!;
+    private GetAllServicesQueryHandler _handler = null!;
 
     [SetUp]
     public void SetUp()
     {
         _serviceRepository = A.Fake<IServiceRepository>();
         _fileService = A.Fake<IFileService>();
-        _mapper = A.Fake<IMapper>();
-        _handler = new GetAllServicesWithSasHandler(_serviceRepository, _fileService, _mapper);
+        _mapper = A.Fake<IApplicationMapper>();
+
+        var resolver = new ServiceImageUrlResolver(_fileService, NullLogger<ServiceImageUrlResolver>.Instance);
+        _handler = new GetAllServicesQueryHandler(_serviceRepository, resolver, _mapper);
     }
 
     [Test]
@@ -31,7 +35,7 @@ public class GetAllServicesWithSasHandlerTests
         {
             Id = Guid.NewGuid(),
             Name = "Botox",
-            ImageUrl = "services/image.jpg"
+            ImageUrl = "images/services/image.jpg"
         };
 
         var mappedDtos = new List<ServiceDTO>
@@ -41,12 +45,12 @@ public class GetAllServicesWithSasHandlerTests
 
         A.CallTo(() => _serviceRepository.GetAllServicesAsync())
             .Returns([service]);
-        A.CallTo(() => _mapper.Map<List<ServiceDTO>>(A<List<ServiceModel>>.That.Matches(list => list.Count == 1 && list[0].Id == service.Id)))
+        A.CallTo(() => _mapper.ToServiceDtoList(A<IEnumerable<ServiceModel>>._))
             .Returns(mappedDtos);
-        A.CallTo(() => _fileService.GenerateServiceImageReadUrlAsync("services/image.jpg", A<CancellationToken>._))
+        A.CallTo(() => _fileService.GenerateServiceImageReadUrlAsync("images/services/image.jpg", A<CancellationToken>._))
             .Returns("https://signed-url");
 
-        var result = await _handler.Handle(new GetAllServicesWithSasQuery(), CancellationToken.None);
+        var result = (await _handler.Handle(new GetAllServicesQuery(), CancellationToken.None)).ToList();
 
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].ImageUrl, Is.EqualTo("https://signed-url"));
@@ -69,10 +73,10 @@ public class GetAllServicesWithSasHandlerTests
 
         A.CallTo(() => _serviceRepository.GetAllServicesAsync())
             .Returns([service]);
-        A.CallTo(() => _mapper.Map<List<ServiceDTO>>(A<List<ServiceModel>>.That.Matches(list => list.Count == 1 && list[0].Id == service.Id)))
+        A.CallTo(() => _mapper.ToServiceDtoList(A<IEnumerable<ServiceModel>>._))
             .Returns(mappedDtos);
 
-        var result = await _handler.Handle(new GetAllServicesWithSasQuery(), CancellationToken.None);
+        var result = (await _handler.Handle(new GetAllServicesQuery(), CancellationToken.None)).ToList();
 
         Assert.That(result[0].ImageUrl, Is.EqualTo(string.Empty));
         A.CallTo(() => _fileService.GenerateServiceImageReadUrlAsync(A<string>._, A<CancellationToken>._))

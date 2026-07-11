@@ -5,6 +5,7 @@ using Application_Layer.Jwt;
 using Domain_Layer.Common;
 using Domain_Layer.Models;
 using FakeItEasy;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Test_Layer.UserTests.RefreshTokenTests
 {
@@ -26,7 +27,8 @@ namespace Test_Layer.UserTests.RefreshTokenTests
             _handler = new RefreshAccessTokenCommandHandler(
                 _userRepository,
                 _jwtTokenGenerator,
-                _refreshTokenService);
+                _refreshTokenService,
+                NullLogger<RefreshAccessTokenCommandHandler>.Instance);
         }
 
         [Test]

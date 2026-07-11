@@ -82,6 +82,13 @@ namespace Infrastructure_Layer.Database
                 entity.Ignore(b => b.User);
                 entity.Ignore(b => b.Employee);
 
+                // Soft delete: lagra statusen som läsbar sträng ("Active"/"Cancelled").
+                // Default-värdet backfyller befintliga rader till Active vid migrering.
+                entity.Property(b => b.Status)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .HasDefaultValue(BookingStatus.Active);
+
                 entity.HasOne<ApplicationUser>()
                     .WithMany()
                     .HasForeignKey(b => b.UserId)

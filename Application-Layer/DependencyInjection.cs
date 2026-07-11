@@ -1,3 +1,6 @@
+using Application_Layer.Common;
+using Application_Layer.Interfaces;
+using Application_Layer.Mapping;
 using Application_Layer.PipelineBehaviour;
 using FluentValidation;
 using MediatR;
@@ -17,8 +20,10 @@ namespace Application_Layer
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
-            services.AddAutoMapper(_ => { }, AppDomain.CurrentDomain.GetAssemblies());
+            services.AddScoped<IServiceImageUrlResolver, ServiceImageUrlResolver>();
 
+            // Mapperly-mappern är stateless och trådsäker → singleton.
+            services.AddSingleton<IApplicationMapper, ApplicationMapper>();
 
             return services;
         }

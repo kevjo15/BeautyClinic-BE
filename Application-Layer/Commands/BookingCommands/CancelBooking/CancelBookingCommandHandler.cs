@@ -43,12 +43,17 @@ namespace Application_Layer.Commands.BookingCommands.CancelBooking
                     OperationFailureType.Forbidden);
             }
 
-            if (booking.StartTime <= DateTime.Now)
+            if (booking.StartTime <= SwedishTime.Now)
             {
                 return OperationResult.Failure("Cannot cancel a booking that has already started or completed.");
             }
 
-            await _bookingRepository.DeleteAsync(request.Id);
+            // Soft delete: behåll bokningen men markera den som avbokad, så att
+            // avbokningen kan följas upp i adminrapporten. Operativa queries
+            // (mina bokningar, personalens schema, konfliktkontroll) filtrerar
+            // bort avbokade rader så tiden frigörs precis som vid hård radering.
+            booking.Status = BookingStatus.Cancelled;
+            await _bookingRepository.UpdateAsync(booking);
 
             var service = await _serviceRepository.GetServiceByIdAsync(booking.ServiceId);
             var serviceName = service != null ? service.Name : "tjänsten";

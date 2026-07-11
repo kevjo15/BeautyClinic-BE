@@ -1,0 +1,10 @@
+# Riok.Mapperly-diagnostik för mapparna i denna mapp.
+#
+# RMG020 = "source member is not mapped to any target member". Våra läs-DTO:er
+# släpper medvetet källfält (lösenord, navigations-props, interna flaggor osv.),
+# så detta är förväntat och inte ett fel. Vi tystar därför RMG020 här.
+#
+# RMG012 (omappat MÅL-fält) lämnas kvar aktivt — det fångar riktiga misstag där
+# ett målfält skulle bli osatt.
+[*.cs]
+dotnet_diagnostic.RMG020.severity = none

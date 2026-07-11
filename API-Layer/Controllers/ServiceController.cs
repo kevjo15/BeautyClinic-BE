@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Authorization;
 using Application_Layer.Queries.ServiceQueries;
 using Microsoft.AspNetCore.Http;
 using Application_Layer.Commands.ServiceCommands.UploadServiceImage;
-using Application_Layer.Queries.ServiceQueries.GetAllServicesWithSas;
 using System.Threading;
 using System.IO;
 
@@ -32,22 +31,24 @@ namespace API_Layer.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllServices()
+        public async Task<IActionResult> GetAllServices(CancellationToken ct)
         {
-            var services = await _mediator.Send(new GetAllServicesQuery());
+            var services = await _mediator.Send(new GetAllServicesQuery(), ct);
             return Ok(services);
         }
 
+        // Deprecated alias: image URLs are now resolved on every read, so this
+        // route is identical to GET /api/services. Kept until deployed clients stop calling it.
         [HttpGet("with-sas")]
         [AllowAnonymous]
-        public async Task<ActionResult<IReadOnlyList<ServiceDTO>>> GetAllWithSas(CancellationToken ct)
+        public async Task<ActionResult<IEnumerable<ServiceDTO>>> GetAllWithSas(CancellationToken ct)
         {
-            return Ok(await _mediator.Send(new GetAllServicesWithSasQuery(), ct));
+            return Ok(await _mediator.Send(new GetAllServicesQuery(), ct));
         }
 
         // POST: api/services/create
         [HttpPost]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateService([FromBody] ServiceDTO serviceDto)
         {
             var command = new CreateServiceCommand(serviceDto);
@@ -57,7 +58,7 @@ namespace API_Layer.Controllers
 
         // PUT: api/services/update/{id}
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateService(Guid id, [FromBody] ServiceDTO serviceDto)
         {
             var command = new UpdateServiceCommand(id, serviceDto);
@@ -67,7 +68,7 @@ namespace API_Layer.Controllers
 
         // DELETE: api/services/delete/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteService(Guid id)
         {
             var command = new DeleteServiceCommand(id);
@@ -93,7 +94,7 @@ namespace API_Layer.Controllers
             return Ok(services);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost("{serviceId}/image")]
         public async Task<ActionResult<UploadServiceImageResult>> UploadImage([FromRoute] Guid serviceId, IFormFile file, CancellationToken ct)
         {
