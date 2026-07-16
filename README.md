@@ -1,6 +1,6 @@
 # BeautyClinic-BE
 
-A production-grade .NET 8 backend for a beauty clinic management system.
+A production-grade .NET 10 backend for a beauty clinic management system.
 Built with Clean Architecture, CQRS, and a focus on observability, security, and testability.
 
 The frontend lives in a separate repository ([ElsaBeauty-FE](https://github.com/Kevjo15/ElsaBeauty-FE)) and consumes this API.
@@ -12,12 +12,16 @@ The frontend lives in a separate repository ([ElsaBeauty-FE](https://github.com/
 - **Clean Architecture** with strictly enforced layer boundaries (API → Application → Domain → Infrastructure)
 - **CQRS** via MediatR — every use case is a `Command` or `Query` with an isolated handler
 - **Pipeline behaviors** for cross-cutting concerns: logging and validation
-- **Structured logging** with Serilog + automatic HTTP request logging
-- **Application Insights** integration for production telemetry
 - **JWT auth** with refresh-token rotation, SHA256-hashed storage, and reuse detection
+- **Google sign-in** — server-side Google ID-token verification, account linking / provisioning
+- **Stripe payments** — online payment at booking (card, wallets, Klarna, Amazon Pay) with **server-side amount verification**, card-on-file for no-show fees, automatic refunds, and **idempotent webhook reconciliation** (a paid booking is never lost even if the customer never returns from a redirect, and is auto-refunded on slot conflict)
+- **Booking lifecycle** — availability, conflict-safe creation (serializable transaction), soft-delete cancellation, no-show handling, and a background **reminder worker**
+- **Admin reporting** — booked-value vs collected revenue, no-show/cancellation counts, CSV export (Excel-friendly, UTF-8 BOM)
+- **GDPR account deletion** — anonymization that preserves booking records for reporting
+- **Structured logging** with Serilog + automatic HTTP request logging, plus **Application Insights** telemetry
 - **Real-time** chat and notifications via SignalR
 - **Azure Blob Storage** for images, with short-lived SAS URLs and in-memory URL caching
-- **44 unit/integration tests** across handlers, validators, and pipeline behaviors
+- **132 unit/integration tests** across handlers, validators, and pipeline behaviors
 
 ---
 
@@ -25,13 +29,15 @@ The frontend lives in a separate repository ([ElsaBeauty-FE](https://github.com/
 
 | Concern | Choice |
 |---------|--------|
-| Runtime | .NET 8 (LTS) |
+| Runtime | .NET 10 |
 | API | ASP.NET Core, REST + SignalR |
 | Persistence | Entity Framework Core + SQL Server |
 | Identity | ASP.NET Identity + JWT bearer tokens |
+| Payments | Stripe (`Stripe.net`) — PaymentIntent, SetupIntent, refunds, webhooks |
+| Social auth | Google ID-token verification (`Google.Apis.Auth`) |
 | CQRS / Mediator | MediatR |
 | Validation | FluentValidation |
-| Object mapping | AutoMapper |
+| Object mapping | Riok.Mapperly (source-generated) |
 | Logging | Serilog (Console, ready for additional sinks) |
 | Telemetry | Application Insights |
 | Storage | Azure Blob Storage (Azurite locally) |
@@ -188,7 +194,7 @@ Auth uses the access token via the `access_token` query parameter (browsers can'
 
 ## Testing
 
-- 44 tests across handlers, validators, and pipeline behaviors
+- 132 tests across handlers, validators, and pipeline behaviors
 - NUnit + FakeItEasy for mocking
 - Tests live next to the feature they cover under `Test-Layer/<Feature>Tests/`
 
@@ -202,7 +208,7 @@ dotnet test Test-Layer/Test-Layer.csproj
 
 ### Prerequisites
 
-- .NET 8 SDK
+- .NET 10 SDK
 - Docker (for SQL Server + Azurite)
 
 ### 1. Clone and configure
@@ -220,6 +226,10 @@ Edit `appsettings.Development.json`:
 - `JwtSettings:RefreshTokenPepper` — secure random string
 - `Storage:ConnectionString` — `UseDevelopmentStorage=true` for Azurite
 - `ApplicationInsights:ConnectionString` — optional, for telemetry
+- `Stripe:*` — optional. Set `SecretKey`/`WebhookSecret` to enable payments; without them the app falls back to a null payment service and bookings are made without a card
+- `GoogleAuth:ClientId` — optional. Enables server-side verification of Google sign-ins
+
+> Payments and Google sign-in are **feature-gated**: absent configuration disables the feature cleanly rather than breaking startup.
 
 ### 2. Start dependencies
 
@@ -258,12 +268,14 @@ All endpoints are documented via Swagger when running locally. High-level groupi
 
 | Group | Routes |
 |-------|--------|
-| Auth | `/api/auth/{register,login,refresh,logout}` |
-| Current user | `/api/me` (full profile), `/api/me/profile`, `/api/me/password` |
+| Auth | `/api/auth/{register,login,google,refresh,logout}`, email confirmation + password reset |
+| Current user | `/api/me` (full profile), `/api/me/profile`, `/api/me/password`, `DELETE /api/me` (GDPR) |
 | Users (admin) | `/api/users/employees` |
 | Services | `/api/services` (image URLs SAS-signed on read), `/api/services/{id}/image` |
 | Categories | `/api/categories`, `/api/categories/with-services` |
-| Bookings | `/api/bookings`, `/api/bookings/availability`, `/api/bookings/me`, `/api/bookings/assigned` |
+| Bookings | `/api/bookings`, `/api/bookings/availability`, `/api/bookings/me`, `/api/bookings/assigned`, `/api/bookings/{id}/no-show`, `/api/bookings/from-payment` |
+| Payments | `/api/payments/setup-intent`, `/api/payments/payment-intent`, `/api/stripe/webhook` |
+| Reports (admin) | `/api/bookings/report`, `/api/bookings/report/csv` |
 | Schedules | `/api/schedules/{employeeId}` |
 | Work days | `/api/workdays/{employeeId}`, `/api/workdays/{employeeId}/generate` |
 | Chat | `/api/conversations/{id}/messages` |
@@ -277,19 +289,20 @@ All endpoints are documented via Swagger when running locally. High-level groupi
 ```
 BeautyClinic-BE/
 ├── API-Layer/                  ASP.NET Core host, controllers, hubs, middleware
-│   ├── Controllers/
+│   ├── Controllers/            incl. PaymentController, StripeWebhookController
 │   ├── Hubs/
 │   ├── Middleware/             ErrorHandlingMiddleware, RateLimiting
+│   ├── Workers/                BookingReminderWorker (BackgroundService)
 │   ├── Notifications/          SignalR notification adapter
 │   └── Program.cs              Composition root
 ├── Application-Layer/
-│   ├── Commands/<Feature>Commands/<Action>/
+│   ├── Commands/<Feature>Commands/<Action>/   incl. Booking + Payment commands
 │   ├── Queries/<Feature>Queries/<Action>/
-│   ├── Interfaces/             Abstractions only — never concretes
+│   ├── Interfaces/             Abstractions only (e.g. IStripePaymentService)
 │   ├── PipelineBehaviour/      LoggingBehaviour, ValidationBehaviour
 │   ├── Validators/
 │   ├── DTOs/
-│   └── AutoMapper/
+│   └── Mapping/                Riok.Mapperly (source-generated)
 ├── Domain-Layer/
 │   ├── Models/                 Booking, Service, User, Category, ...
 │   └── Common/                 OperationResult, OperationFailureType
@@ -299,7 +312,7 @@ BeautyClinic-BE/
 │   ├── Repositories/
 │   ├── Storage/                Azure Blob, SAS, caching
 │   ├── Notifications/          Email/SMS senders, templates
-│   └── Services/               JWT, refresh token services
+│   └── Services/               JWT, refresh tokens, Stripe (+ null fallback), Google token verification
 └── Test-Layer/                 NUnit, organized by feature
     ├── Behaviors/              Pipeline behavior tests
     ├── BookingTests/
