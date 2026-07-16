@@ -11,5 +11,6 @@ namespace Domain_Layer.Models
         public bool IsDeleted { get; set; }
         public string? AvatarUrl { get; set; }
         public bool EmailConfirmed { get; set; }
+        public string? StripeCustomerId { get; set; }
     }
 }

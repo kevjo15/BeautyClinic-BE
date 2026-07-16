@@ -25,6 +25,27 @@ namespace Domain_Layer.Models
         /// </summary>
         public DateTime? ReminderSentAt { get; set; }
 
+        /// <summary>Stripe payment-method-id för kortet som sparades vid bokning (no-show debiteras detta). Null = kortlös bokning.</summary>
+        public string? StripePaymentMethodId { get; set; }
+
+        /// <summary>Kortmärke för visning ("Visa"), aldrig fullt kortnummer.</summary>
+        public string? CardBrand { get; set; }
+
+        /// <summary>Kortets sista fyra siffror för visning.</summary>
+        public string? CardLast4 { get; set; }
+
+        /// <summary>När no-show-avgiften drogs. Null = ej debiterad. Idempotensspärr så avgiften inte dras två gånger.</summary>
+        public DateTime? NoShowFeeChargedAt { get; set; }
+
+        /// <summary>Betalningsstatus för onlinebetalning. None = betala på plats (kort-på-fil).</summary>
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.None;
+
+        /// <summary>Belopp (kr) som faktiskt debiterats online (hela priset). 0 = inget dragits.</summary>
+        public decimal AmountPaid { get; set; }
+
+        /// <summary>Stripe PaymentIntent-id för onlinebetalningen (används vid återbetalning). Null = ingen onlinebetalning.</summary>
+        public string? StripePaymentIntentId { get; set; }
+
         // Navigation properties
         public UserModel? User { get; set; }
         public UserModel? Employee { get; set; }
@@ -37,6 +58,22 @@ namespace Domain_Layer.Models
         Active,
 
         /// <summary>Avbokad. Behålls i databasen för uppföljning/rapportering.</summary>
-        Cancelled
+        Cancelled,
+
+        /// <summary>Utebliven (no-show). Sätts av personal på en passerad bokning; triggar no-show-avgift.</summary>
+        NoShow
+    }
+
+    /// <summary>Onlinebetalningens status för en bokning.</summary>
+    public enum PaymentStatus
+    {
+        /// <summary>Ingen onlinebetalning — kunden betalar på plats (ev. kort-på-fil för no-show).</summary>
+        None,
+
+        /// <summary>Hela beloppet betalt online.</summary>
+        PaidInFull,
+
+        /// <summary>Onlinebetalningen är återbetalad (avbokning i tid).</summary>
+        Refunded
     }
 }

@@ -32,12 +32,14 @@ namespace Application_Layer.Queries.BookingQueries.GetBookingsReport
                     CustomerName = FormatName(b.User?.FirstName, b.User?.LastName),
                     EmployeeName = FormatName(b.Employee?.FirstName, b.Employee?.LastName),
                     IsCancelled = b.Status == BookingStatus.Cancelled,
+                    IsNoShow = b.Status == BookingStatus.NoShow,
                 })
                 .ToList();
 
-            // Omsättning och antal räknas bara på aktiva bokningar — avbokade
-            // gav ingen intäkt och ska inte blåsa upp siffrorna.
-            var activeRows = rows.Where(r => !r.IsCancelled).ToList();
+            // Omsättning och antal räknas bara på aktiva bokningar — avbokade och
+            // uteblivna gav ingen behandlingsintäkt och ska inte blåsa upp siffrorna.
+            // (No-show-avgiften bokförs hos Stripe och ingår inte här.)
+            var activeRows = rows.Where(r => !r.IsCancelled && !r.IsNoShow).ToList();
 
             var perService = activeRows
                 .GroupBy(r => r.ServiceName)
@@ -56,7 +58,12 @@ namespace Application_Layer.Queries.BookingQueries.GetBookingsReport
                 To = request.To.Date,
                 TotalBookings = activeRows.Count,
                 TotalRevenue = activeRows.Sum(r => r.Price),
-                CancelledBookings = rows.Count - activeRows.Count,
+                // Faktiskt inbetalt online (hela priset), återbetalt exkluderas.
+                AmountCollected = bookings
+                    .Where(b => b.PaymentStatus == PaymentStatus.PaidInFull)
+                    .Sum(b => b.AmountPaid),
+                CancelledBookings = rows.Count(r => r.IsCancelled),
+                NoShowBookings = rows.Count(r => r.IsNoShow),
                 PerService = perService,
                 Rows = rows,
             };

@@ -4,6 +4,7 @@ using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure_Layer.Migrations
 {
     [DbContext(typeof(ElsaBeautyDbContext))]
-    partial class ElsaBeautyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260713234123_AddBookingPaymentStatus")]
+    partial class AddBookingPaymentStatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,8 +76,7 @@ namespace Infrastructure_Layer.Migrations
                         .HasDefaultValue("Active");
 
                     b.Property<string>("StripePaymentIntentId")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("StripePaymentMethodId")
                         .HasColumnType("nvarchar(max)");
@@ -88,10 +90,6 @@ namespace Infrastructure_Layer.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("ServiceId");
-
-                    b.HasIndex("StripePaymentIntentId")
-                        .IsUnique()
-                        .HasFilter("[StripePaymentIntentId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 

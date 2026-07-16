@@ -22,5 +22,7 @@ public enum NotificationType
     BookingConfirmation,
     BookingCancellation,
     BookingUpdated,
-    MessageReceived
+    MessageReceived,
+    NoShowFeeCharged,
+    PaymentFailed
 }

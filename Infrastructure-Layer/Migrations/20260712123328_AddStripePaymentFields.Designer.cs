@@ -4,6 +4,7 @@ using Infrastructure_Layer.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure_Layer.Migrations
 {
     [DbContext(typeof(ElsaBeautyDbContext))]
-    partial class ElsaBeautyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260712123328_AddStripePaymentFields")]
+    partial class AddStripePaymentFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -27,9 +30,6 @@ namespace Infrastructure_Layer.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("CardBrand")
                         .HasColumnType("nvarchar(max)");
@@ -49,13 +49,6 @@ namespace Infrastructure_Layer.Migrations
                     b.Property<DateTime?>("NoShowFeeChargedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("None");
-
                     b.Property<DateTime?>("ReminderSentAt")
                         .HasColumnType("datetime2");
 
@@ -72,10 +65,6 @@ namespace Infrastructure_Layer.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("Active");
 
-                    b.Property<string>("StripePaymentIntentId")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<string>("StripePaymentMethodId")
                         .HasColumnType("nvarchar(max)");
 
@@ -88,10 +77,6 @@ namespace Infrastructure_Layer.Migrations
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("ServiceId");
-
-                    b.HasIndex("StripePaymentIntentId")
-                        .IsUnique()
-                        .HasFilter("[StripePaymentIntentId] IS NOT NULL");
 
                     b.HasIndex("UserId");
 
