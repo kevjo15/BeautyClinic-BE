@@ -88,6 +88,58 @@ public class GetBookingsReportQueryHandlerTests
     }
 
     [Test]
+    public async Task Handle_ExcludesNoShowFromTotals_ButCountsAndListsThem()
+    {
+        var day = new DateTime(2026, 7, 1);
+        var noShow = Booking("Botox Panna", 2000m, day.AddHours(9));
+        noShow.Status = BookingStatus.NoShow;
+
+        A.CallTo(() => _bookingRepository.GetByDateRangeAsync(A<DateTime>._, A<DateTime>._, A<bool>._))
+            .Returns(
+            [
+                Booking("Botox Panna", 2000m, day.AddHours(10)),
+                Booking("Läppfillers 1 ml", 2500m, day.AddHours(14)),
+                noShow,
+            ]);
+
+        var report = await _handler.Handle(
+            new GetBookingsReportQuery(day, day), CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(report.TotalBookings, Is.EqualTo(2), "uteblivna räknas inte som aktiva");
+            Assert.That(report.TotalRevenue, Is.EqualTo(4500m),
+                "uteblivna ger ingen behandlingsintäkt (no-show-avgiften bokförs hos Stripe)");
+            Assert.That(report.NoShowBookings, Is.EqualTo(1));
+            Assert.That(report.CancelledBookings, Is.EqualTo(0));
+            Assert.That(report.Rows, Has.Count.EqualTo(3), "alla rader listas, även uteblivna");
+            Assert.That(report.Rows.Count(r => r.IsNoShow), Is.EqualTo(1));
+            Assert.That(report.PerService.Sum(l => l.Count), Is.EqualTo(2),
+                "per-behandling räknar bara aktiva");
+        });
+    }
+
+    [Test]
+    public async Task Csv_ShowsNoShowStatusAndCount()
+    {
+        var day = new DateTime(2026, 7, 1);
+        var noShow = Booking("Botox Panna", 2000m, day.AddHours(9));
+        noShow.Status = BookingStatus.NoShow;
+
+        A.CallTo(() => _bookingRepository.GetByDateRangeAsync(A<DateTime>._, A<DateTime>._, A<bool>._))
+            .Returns([Booking("Läppfillers 1 ml", 2500m, day.AddHours(10)), noShow]);
+
+        var report = await _handler.Handle(new GetBookingsReportQuery(day, day), CancellationToken.None);
+        var csv = BookingsReportCsvBuilder.Build(report);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(csv, Does.Contain(";Utebliven"), "utebliven rad får status Utebliven");
+            Assert.That(csv, Does.Contain("Antal uteblivna;1"));
+        });
+    }
+
+    [Test]
     public async Task Handle_RequestsCancelledFromRepository_WithInclusiveEndDate()
     {
         var from = new DateTime(2026, 7, 1);
@@ -146,7 +198,7 @@ public class GetBookingsReportQueryHandlerTests
             Assert.That(csv, Does.Contain("1999,5"), "svensk decimalkomma");
             Assert.That(csv, Does.Contain(";Aktiv"), "aktiv rad får status Aktiv");
             Assert.That(csv, Does.Contain(";Avbokad"), "avbokad rad får status Avbokad");
-            Assert.That(csv, Does.Contain("Total omsättning (kr);1999,5"));
+            Assert.That(csv, Does.Contain("Bokat värde (kr);1999,5"));
             Assert.That(csv, Does.Contain("Antal avbokningar;1"));
         });
     }

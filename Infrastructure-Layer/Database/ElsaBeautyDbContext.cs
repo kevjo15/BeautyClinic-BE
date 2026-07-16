@@ -89,6 +89,23 @@ namespace Infrastructure_Layer.Database
                     .HasMaxLength(20)
                     .HasDefaultValue(BookingStatus.Active);
 
+                // Betalningsstatus som läsbar sträng, default None (betala på plats).
+                entity.Property(b => b.PaymentStatus)
+                    .HasConversion<string>()
+                    .HasMaxLength(20)
+                    .HasDefaultValue(PaymentStatus.None);
+
+                entity.Property(b => b.AmountPaid)
+                    .HasColumnType("decimal(10,2)");
+
+                // Unikt (filtrerat) index: en Stripe-betalning får bara ge EN bokning.
+                // Gör PI-vakten atomär — returflödet och webhooken kan tävla om samma
+                // betalning, och utan indexet kunde båda passera exists-kontrollen.
+                entity.Property(b => b.StripePaymentIntentId).HasMaxLength(255);
+                entity.HasIndex(b => b.StripePaymentIntentId)
+                    .IsUnique()
+                    .HasFilter("[StripePaymentIntentId] IS NOT NULL");
+
                 entity.HasOne<ApplicationUser>()
                     .WithMany()
                     .HasForeignKey(b => b.UserId)

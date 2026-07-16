@@ -25,13 +25,15 @@ namespace Application_Layer.Common
                 sb.Append(row.Price.ToString("0.##", Swedish)).Append(';');
                 sb.Append(Escape(row.CustomerName)).Append(';');
                 sb.Append(Escape(row.EmployeeName)).Append(';');
-                sb.AppendLine(row.IsCancelled ? "Avbokad" : "Aktiv");
+                sb.AppendLine(row.IsCancelled ? "Avbokad" : row.IsNoShow ? "Utebliven" : "Aktiv");
             }
 
             sb.AppendLine();
             sb.Append("Totalt antal;").AppendLine(report.TotalBookings.ToString(Swedish));
-            sb.Append("Total omsättning (kr);").AppendLine(report.TotalRevenue.ToString("0.##", Swedish));
+            sb.Append("Bokat värde (kr);").AppendLine(report.TotalRevenue.ToString("0.##", Swedish));
+            sb.Append("Inbetalt online (kr);").AppendLine(report.AmountCollected.ToString("0.##", Swedish));
             sb.Append("Antal avbokningar;").AppendLine(report.CancelledBookings.ToString(Swedish));
+            sb.Append("Antal uteblivna;").AppendLine(report.NoShowBookings.ToString(Swedish));
 
             return sb.ToString();
         }

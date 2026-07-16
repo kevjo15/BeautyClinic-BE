@@ -26,6 +26,12 @@ namespace Application_Layer.Interfaces
         Task AddAsync(BookingModel booking);
         Task<bool> TryAddIfNoConflictAsync(BookingModel booking);
         Task<bool> HasConflictAsync(Guid excludeBookingId, string employeeId, DateTime start, DateTime end);
+
+        /// <summary>
+        /// Finns en bokning (oavsett status) som redan använt denna Stripe-betalning?
+        /// Skydd mot att samma PaymentIntent återanvänds för flera bokningar.
+        /// </summary>
+        Task<bool> ExistsByPaymentIntentIdAsync(string paymentIntentId);
         Task UpdateAsync(BookingModel booking);
         Task<List<BookingModel>> GetAllAsync();
     }

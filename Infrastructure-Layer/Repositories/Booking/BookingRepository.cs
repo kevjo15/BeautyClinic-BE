@@ -45,6 +45,12 @@ namespace Infrastructure_Layer.Repositories
                 b.StartTime < end && b.EndTime > start);
         }
 
+        public async Task<bool> ExistsByPaymentIntentIdAsync(string paymentIntentId)
+        {
+            // Oavsett status: även en avbokad/återbetald bokning "förbrukar" sin betalning.
+            return await _context.Bookings.AnyAsync(b => b.StripePaymentIntentId == paymentIntentId);
+        }
+
         public async Task<bool> TryAddIfNoConflictAsync(BookingModel booking)
         {
             try
@@ -82,9 +88,13 @@ namespace Infrastructure_Layer.Repositories
 
         public async Task<List<BookingModel>> GetByUserIdAsync(string userId)
         {
+            // Aktiva + uteblivna visas. Uteblivna MÅSTE synas för kunden — de har
+            // debiterats en no-show-avgift och behöver se bokningen det gäller.
+            // Avbokade döljs fortsatt (medvetet, som tidigare beteende).
             var bookings = await _context.Bookings
                 .Include(b => b.Service)
-                .Where(b => b.UserId == userId && b.Status == BookingStatus.Active)
+                .Where(b => b.UserId == userId &&
+                    (b.Status == BookingStatus.Active || b.Status == BookingStatus.NoShow))
                 .ToListAsync();
 
             await PopulateUsersAsync(bookings);

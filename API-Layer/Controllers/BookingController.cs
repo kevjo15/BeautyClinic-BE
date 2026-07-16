@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Application_Layer.Commands.BookingCommands.CreateBooking;
+using Application_Layer.Commands.BookingCommands.ReconcilePaidBooking;
 using Application_Layer.Commands.BookingCommands.UpdateBooking;
 using Application_Layer.Commands.BookingCommands.CancelBooking;
+using Application_Layer.Commands.BookingCommands.MarkBookingNoShow;
 using Application_Layer.Commands.BookingCommands.AssignEmployee;
 using Application_Layer.Queries.BookingQueries.GetBookingById;
 using Application_Layer.Queries.BookingQueries.GetAvailableTimeSlots;
@@ -65,6 +67,20 @@ namespace API_Layer.Controllers
             return HandleResult(result);
         }
 
+        /// <summary>
+        /// Slutför en bokning efter en genomförd onlinebetalning (redirect-retur, t.ex. Klarna).
+        /// Bokningsuppgifterna hämtas serverside ur PaymentIntent-metadatan; idempotent.
+        /// </summary>
+        [HttpPost("from-payment")]
+        public async Task<ActionResult<BookingDTO>> CreateFromPayment([FromBody] FinalizePaymentDTO body)
+        {
+            if (!TryGetCurrentUserId(out var userId)) return Unauthorized();
+
+            // userId skickas med så avstämningen kan verifiera att betalningen tillhör anroparen.
+            var result = await _mediator.Send(new ReconcilePaidBookingCommand(body.PaymentIntentId, userId));
+            return HandleResult(result);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<BookingDTO>> GetBookingById(Guid id)
         {
@@ -103,6 +119,15 @@ namespace API_Layer.Controllers
             var command = new CancelBookingCommand(id, userId, User.IsInRole("Employee"));
             var result = await _mediator.Send(command);
             return HandleResult(result);
+        }
+
+        /// <summary>Markera en passerad bokning som utebliven → drar no-show-avgift från sparat kort.</summary>
+        [HttpPost("{id}/no-show")]
+        [Authorize(Roles = "Admin,Employee")]
+        public async Task<IActionResult> MarkNoShow(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new MarkBookingNoShowCommand(id), ct);
+            return HandleResult(result, () => Ok(new { message = "Bokningen har markerats som utebliven." }));
         }
 
         [HttpGet("availability")]

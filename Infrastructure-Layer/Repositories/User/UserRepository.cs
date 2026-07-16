@@ -256,6 +256,19 @@ namespace Infrastructure_Layer.Repositories.User
             return OperationResult.Success();
         }
 
+        public async Task<OperationResult> SetStripeCustomerIdAsync(string userId, string stripeCustomerId)
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId);
+            if (identityUser == null)
+            {
+                return OperationResult.Failure("User not found.", OperationFailureType.NotFound);
+            }
+
+            identityUser.StripeCustomerId = stripeCustomerId;
+            var result = await _userManager.UpdateAsync(identityUser);
+            return ToOperationResult(result);
+        }
+
         public async Task<UserModel?> GetFirstEmployeeAsync()
         {
             var employees = await _userManager.GetUsersInRoleAsync("Employee");
@@ -309,7 +322,8 @@ namespace Infrastructure_Layer.Repositories.User
                 LastName = user.LastName,
                 IsDeleted = user.IsDeleted,
                 AvatarUrl = user.AvatarUrl,
-                EmailConfirmed = user.EmailConfirmed
+                EmailConfirmed = user.EmailConfirmed,
+                StripeCustomerId = user.StripeCustomerId
             };
         }
 

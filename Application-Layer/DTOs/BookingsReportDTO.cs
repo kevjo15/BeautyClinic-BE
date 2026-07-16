@@ -10,6 +10,9 @@ namespace Application_Layer.DTOs
 
         /// <summary>Avbokad bokning. Räknas inte in i omsättning eller antal aktiva.</summary>
         public bool IsCancelled { get; set; }
+
+        /// <summary>Utebliven (no-show). Räknas inte in i behandlingsomsättningen — kunden betalade aldrig behandlingen.</summary>
+        public bool IsNoShow { get; set; }
     }
 
     public class BookingsReportServiceLineDTO
@@ -27,11 +30,17 @@ namespace Application_Layer.DTOs
         /// <summary>Antal aktiva (ej avbokade) bokningar i intervallet.</summary>
         public int TotalBookings { get; set; }
 
-        /// <summary>Omsättning från aktiva bokningar. Avbokade räknas inte in.</summary>
+        /// <summary>Bokat värde: pris för aktiva bokningar (prognos, ej nödvändigtvis inbetalt).</summary>
         public decimal TotalRevenue { get; set; }
+
+        /// <summary>Faktiskt inbetalt online (hela priset), exkl. återbetalt.</summary>
+        public decimal AmountCollected { get; set; }
 
         /// <summary>Antal avbokade bokningar i intervallet.</summary>
         public int CancelledBookings { get; set; }
+
+        /// <summary>Antal uteblivna (no-show) bokningar i intervallet.</summary>
+        public int NoShowBookings { get; set; }
 
         public List<BookingsReportServiceLineDTO> PerService { get; set; } = [];
 
