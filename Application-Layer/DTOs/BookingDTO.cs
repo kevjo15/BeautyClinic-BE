@@ -22,6 +22,16 @@ namespace Application_Layer.DTOs
         public string? EmployeeName { get; set; }
         public string? ServiceName { get; set; }
 
+        // Livscykel + kort-på-fil-status (för FE-visning)
+        public string Status { get; set; } = "Active";
+        public bool HasSavedCard { get; set; }
+        public string? CardBrand { get; set; }
+        public string? CardLast4 { get; set; }
+
+        // Onlinebetalning
+        public string PaymentStatus { get; set; } = "None";
+        public decimal AmountPaid { get; set; }
+
         // Nested objects for full access
         public BookingUserDTO? User { get; set; }
         public BookingUserDTO? Employee { get; set; }

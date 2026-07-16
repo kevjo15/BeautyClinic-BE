@@ -1,5 +1,6 @@
 using Application_Layer.Interfaces;
 using Application_Layer.Jwt;
+using Microsoft.Extensions.Logging;
 using Azure.Communication.Email;
 using Azure.Communication.Sms;
 using Azure.Storage.Blobs;
@@ -74,6 +75,20 @@ namespace Infrastructure_Layer
             {
                 services.AddScoped<IEmailSender, NullEmailSender>();
                 services.AddScoped<ISmsSender, NullSmsSender>();
+            }
+
+            var stripeSecretKey = configuration["Stripe:SecretKey"];
+            if (!string.IsNullOrWhiteSpace(stripeSecretKey))
+            {
+                var stripeWebhookSecret = configuration["Stripe:WebhookSecret"];
+                services.AddScoped<IStripePaymentService>(sp => new Services.StripePaymentService(
+                    stripeSecretKey,
+                    stripeWebhookSecret,
+                    sp.GetRequiredService<ILogger<Services.StripePaymentService>>()));
+            }
+            else
+            {
+                services.AddScoped<IStripePaymentService, Services.NullStripePaymentService>();
             }
 
             return services;

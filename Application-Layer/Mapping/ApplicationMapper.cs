@@ -28,6 +28,12 @@ namespace Application_Layer.Mapping
             CustomerName = FullName(b.User),
             EmployeeName = FullName(b.Employee),
             ServiceName = b.Service?.Name,
+            Status = b.Status.ToString(),
+            HasSavedCard = !string.IsNullOrWhiteSpace(b.StripePaymentMethodId),
+            CardBrand = b.CardBrand,
+            CardLast4 = b.CardLast4,
+            PaymentStatus = b.PaymentStatus.ToString(),
+            AmountPaid = b.AmountPaid,
             User = ToBookingUserDto(b.User),
             Employee = ToBookingUserDto(b.Employee),
         };
@@ -37,6 +43,14 @@ namespace Application_Layer.Mapping
         [MapperIgnoreTarget(nameof(BookingModel.Id))]
         [MapperIgnoreTarget(nameof(BookingModel.ConversationId))]
         [MapperIgnoreTarget(nameof(BookingModel.Status))]
+        [MapperIgnoreTarget(nameof(BookingModel.ReminderSentAt))]
+        [MapperIgnoreTarget(nameof(BookingModel.StripePaymentMethodId))]
+        [MapperIgnoreTarget(nameof(BookingModel.CardBrand))]
+        [MapperIgnoreTarget(nameof(BookingModel.CardLast4))]
+        [MapperIgnoreTarget(nameof(BookingModel.NoShowFeeChargedAt))]
+        [MapperIgnoreTarget(nameof(BookingModel.PaymentStatus))]
+        [MapperIgnoreTarget(nameof(BookingModel.AmountPaid))]
+        [MapperIgnoreTarget(nameof(BookingModel.StripePaymentIntentId))]
         [MapperIgnoreTarget(nameof(BookingModel.User))]
         [MapperIgnoreTarget(nameof(BookingModel.Employee))]
         [MapperIgnoreTarget(nameof(BookingModel.Service))]
@@ -46,6 +60,14 @@ namespace Application_Layer.Mapping
         [MapperIgnoreTarget(nameof(BookingModel.UserId))]
         [MapperIgnoreTarget(nameof(BookingModel.ConversationId))]
         [MapperIgnoreTarget(nameof(BookingModel.Status))]
+        [MapperIgnoreTarget(nameof(BookingModel.ReminderSentAt))]
+        [MapperIgnoreTarget(nameof(BookingModel.StripePaymentMethodId))]
+        [MapperIgnoreTarget(nameof(BookingModel.CardBrand))]
+        [MapperIgnoreTarget(nameof(BookingModel.CardLast4))]
+        [MapperIgnoreTarget(nameof(BookingModel.NoShowFeeChargedAt))]
+        [MapperIgnoreTarget(nameof(BookingModel.PaymentStatus))]
+        [MapperIgnoreTarget(nameof(BookingModel.AmountPaid))]
+        [MapperIgnoreTarget(nameof(BookingModel.StripePaymentIntentId))]
         [MapperIgnoreTarget(nameof(BookingModel.User))]
         [MapperIgnoreTarget(nameof(BookingModel.Employee))]
         [MapperIgnoreTarget(nameof(BookingModel.Service))]

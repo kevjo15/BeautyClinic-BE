@@ -35,6 +35,8 @@ namespace Application_Layer.Interfaces
         /// e-posten), Customer-roll, och den externa loginen kopplas.
         /// </summary>
         Task<OperationResult> RegisterExternalUserAsync(UserModel newUser, string provider, string providerKey);
+        /// <summary>Sparar Stripe-customer-id på användaren (kort-på-fil). Rör inga andra fält.</summary>
+        Task<OperationResult> SetStripeCustomerIdAsync(string userId, string stripeCustomerId);
         Task<UserModel?> GetFirstEmployeeAsync();
         Task<List<UserModel>> GetEmployeesAsync();
         Task<IList<string>> GetRolesAsync(UserModel user);
